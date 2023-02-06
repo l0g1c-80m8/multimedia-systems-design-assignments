@@ -7,6 +7,7 @@ For additional details, look at the particular README of the homeworks individua
 
 ### Summary ###
 
-| Assignment                          | Topics                                                  | Implementation |  Media Type  |
-|-------------------------------------|---------------------------------------------------------|:--------------:|:------------:|
-| [Homework 1](homework-assignment-1) | Spatial Resampling and Aliasing,<br/> Temporal Aliasing |      Java      | Image, Video |
+| Assignment                          | Topics                                                  |                 Implementation                  |  Media Type  |
+|-------------------------------------|---------------------------------------------------------|:-----------------------------------------------:|:------------:|
+| [Homework 0](homework-assignment-0) | Creating, Manipulating and Rendering <br/> an RGB image | [Java](homework-assignment-0/ImageDisplay.java) |    Image     |
+| [Homework 1](homework-assignment-1) | Spatial Resampling and Aliasing,<br/> Temporal Aliasing |                      Java                       | Image, Video |
