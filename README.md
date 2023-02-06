@@ -1,2 +1,8 @@
-# multimedia-systems-assignments
-Repo to contain the assignments for CSCI 576: Multimedia Systems course at USC
+## Assignments for CSCI 576 : Multimedia Systems Design ##
+Repo to contain the assignments for [CSCI 576](https://classes.usc.edu/term-20231/course/csci-576/): Multimeida Systems Design Course
+
+#### Instructor: Professor [Parag Havaldar](https://viterbi.usc.edu/directory/faculty/Havaldar/Parag) (Spring 2023)
+
+For additional details, look at the particular README of the homeworks individually.
+
+### Summary ###
