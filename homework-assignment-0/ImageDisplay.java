@@ -40,7 +40,7 @@ public class ImageDisplay {
 
 				int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
 				// int pix = ((a << 24) + (r << 16) + (g << 8) + b);
-				img.setRGB(x,y,pix);
+				img.setRGB(x, y, pix);
 			}
 		}
 
