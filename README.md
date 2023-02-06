@@ -7,6 +7,6 @@ For additional details, look at the particular README of the homeworks individua
 
 ### Summary ###
 
-| Assignment                          | Topic                                                   | Implementation |  Media Type  |
+| Assignment                          | Topics                                                  | Implementation |  Media Type  |
 |-------------------------------------|---------------------------------------------------------|:--------------:|:------------:|
 | [Homework 1](homework-assignment-1) | Spatial Resampling and Aliasing,<br/> Temporal Aliasing |      Java      | Image, Video |
