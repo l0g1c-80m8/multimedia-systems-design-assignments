@@ -9,8 +9,8 @@ Refer to the [homework specs.](Assignment%201%20-%20Description.pdf) for exact d
 ### Part 1. Spatial Resampling and Aliasing
 
 Here two images are generated and displayed side by side. The first image is the original
-generated image and the second one is a resampled version of the image scaled by a factor of
-```s```. The task is to observe the scaled image with and without anti-aliasing.
+generated image of size 512x512 and the second one is a resampled version of the image scaled
+by a factor of ```s```. The task is to observe the scaled image with and without anti-aliasing.
 
 The program takes in the following parameters:
 ```
