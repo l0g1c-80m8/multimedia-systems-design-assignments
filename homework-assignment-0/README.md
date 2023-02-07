@@ -17,3 +17,5 @@ used to give an additional example of command line args in Java.
 ### Demo Run Example
 
 ![demo-run](assets/demo-run.png)
+
+#### C++ [Starter Code](ImageDisplay_C++) Project in MS Visual Studio is provided by Professor [Parag Havaldar](https://viterbi.usc.edu/directory/faculty/Havaldar/Parag)
