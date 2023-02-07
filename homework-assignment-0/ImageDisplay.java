@@ -4,7 +4,7 @@ import java.awt.image.*;
 import javax.swing.*;
 
 
-public class ImageDisplay {
+class ImageDisplay {
 
 	JFrame frame;
 	JLabel lbIm1;
