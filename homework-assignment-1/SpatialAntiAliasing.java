@@ -8,6 +8,7 @@ import java.awt.image.*;
 import javax.swing.*;
 
 import static java.lang.System.exit;
+import static java.lang.System.out;
 
 /**
  * Main class for the program:
@@ -102,7 +103,55 @@ public class SpatialAntiAliasing {
     }
 
     private static void addSpokesToImage(BufferedImage img, int n) {
-        drawLine(img, 0, 0, img.getWidth() - 1, img.getHeight() - 1);
+        // define endpoints for the first line
+        int startX = 0;
+        int endX = img.getWidth() - 1;
+        int startY = 0;
+        int endY = img.getHeight() - 1;
+
+        // define center (origin) about which to rotate the line endpoints and angle (radians) by which to rotate the lines
+        int centerX = img.getWidth() / 2;
+        int centerY =  img.getHeight() / 2;
+        double rotAngle = Math.toRadians(180 / n);
+
+        // draw n lines starting with a line across the primary diagonal
+        for (int i = 0; i < n; i++) {
+            drawLine(img, startX, startY, endX, endY);
+
+            // transform line coordinates by rotAngle about the origin to get new line endpoints
+            int updatedStartX = (int)Math.ceil(
+                    centerX +
+                            (startX - centerX) * Math.cos(rotAngle) -
+                            (startY - centerY) * Math.sin(rotAngle)
+            );
+            int updatedEndX = (int)Math.ceil(
+                    centerX +
+                            (endX - centerX) * Math.cos(rotAngle) -
+                            (endY - centerY) * Math.sin(rotAngle)
+            );
+            int updatedStartY = (int)Math.ceil(
+                    centerY +
+                            (startX - centerX) * Math.sin(rotAngle) +
+                            (startY - centerY) * Math.cos(rotAngle)
+            );
+            int updatedEndY = (int)Math.ceil(
+                    centerY +
+                            (endX - centerX) * Math.sin(rotAngle) +
+                            (endY - centerY) * Math.cos(rotAngle)
+            );
+
+            startX = updatedStartX;
+            startY = updatedStartY;
+            endX = updatedEndX;
+            endY = updatedEndY;
+
+            out.println("Iteration " + Integer.toString(i + 1) + ": ");
+            out.println(updatedStartX);
+            out.println(updatedEndX);
+            out.println(updatedStartY);
+            out.println(updatedEndY);
+        }
+
     }
 
     private final static int ORIG_IMG_WIDTH = 512;
