@@ -20,8 +20,14 @@ s - Scaling factor (between 0 and 1)
 a - A boolean value (0 or 1) indicating whether to perform anti-aliasing.
 ```
 
-The results for experiments described in the homework specs. can be found here.
+#### The results for experimental analysis described in the homework specs. can be found here.
 
-#### Demo run for parameters (n=6, s=0.5, a=0)
+#### Demo run for parameters (n=64 [lines], s=0.5 ([scale factor], a=0 [no anti-aliasing])
 
-#### Demo run for parameters (n=6, s=0.5, a=1)
+![demo without anti-aliasing](assets/sample-without-anti-aliasing.png)
+
+#### Demo run for parameters (n=64 [lines], s=0.5 ([scale factor], a=1 [anti-aliasing])
+
+![demo with anti-aliasing](assets/sample-with-anti-aliasing.png)
+
+### Part 2. Temporal Aliasing
