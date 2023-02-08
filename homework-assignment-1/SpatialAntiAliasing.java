@@ -177,12 +177,47 @@ public class SpatialAntiAliasing {
      * @param scaleFactor the factor by which the image is scaled down
      * @param antiAliasing boolean parameter to determine is anti-aliasing is to be performed or not
      */
-    private static void sampleImage(BufferedImage orig, BufferedImage sampled, float scaleFactor, boolean antiAliasing) {
+    private static void sampleImage(BufferedImage orig, BufferedImage sampled, float scaleFactor, int antiAliasing) {
         for (int x = 0; x < sampled.getWidth(); x++) {
             for (int y = 0; y < sampled.getHeight(); y++) {
-                int pix;
-                if (antiAliasing) {
-                    pix = orig.getRGB((int)(x / scaleFactor), (int)(y / scaleFactor));
+                int pix; // pixel is black by default
+                if (antiAliasing == 1) {
+                    // explore a 3x3 neighborhood to compute average as the sampled pixel value
+                    int scaledX = (int)(x / scaleFactor);
+                    int scaledY = (int)(y / scaleFactor);
+                    int samplesExplored = 0;
+
+                    // variables to store averages for individual channels
+                    int r = 0x00;
+                    int g = 0x00;
+                    int b = 0x00;
+
+                    for (int deltaX = -1; deltaX < 2; deltaX++) {
+                        for (int deltaY = -1; deltaY < 2; deltaY++) {
+                            int origSampleX = scaledX + deltaX;
+                            int origSampleY = scaledY + deltaY;
+
+                            if (origSampleX < 0 ||
+                                    origSampleX >= orig.getWidth() ||
+                                    origSampleY < 0 ||
+                                    origSampleY >= orig.getHeight()
+                            )
+                                continue;
+
+                            int samplePix = orig.getRGB(origSampleX, origSampleY);
+                            // here int size is assumed to be 4 bytes
+                            r += (samplePix >> 16 & 0x00ff);
+                            g += (samplePix >> 8 & 0x0000ff);
+                            b += (samplePix & 0x000000ff);
+                            samplesExplored += 1;
+                        }
+                    }
+
+                    byte rByte = (byte)(Math.min(255, r / samplesExplored));
+                    byte gByte = (byte)(Math.min(255, g / samplesExplored));
+                    byte bByte = (byte)(Math.min(255, b / samplesExplored));
+                    pix = 0xff000000 | ((rByte & 0xff) << 16) | ((gByte & 0xff) << 8) | (bByte & 0xff);
+
                 } else {
                     pix = orig.getRGB((int)(x / scaleFactor), (int)(y / scaleFactor));
                 }
@@ -203,7 +238,7 @@ public class SpatialAntiAliasing {
 
         int n = Integer.parseInt(args[0]);
         float s = Float.parseFloat(args[1]);
-        boolean a = Boolean.parseBoolean(args[2]);
+        int a = Integer.parseInt(args[2]);
 
         // create original image
         BufferedImage orig = createEmptyImage(ORIG_IMG_WIDTH, ORIG_IMG_HEIGHT);
