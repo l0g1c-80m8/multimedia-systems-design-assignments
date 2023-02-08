@@ -50,6 +50,7 @@ public class SpatialAntiAliasing {
                 c.weightx = 0.5;
                 c.gridx = 0;
                 c.gridy = 0;
+                c.insets = new Insets(20, 40, 20, 40);
                 frame.getContentPane().add(lbText1, c);
 
                 c.fill = GridBagConstraints.HORIZONTAL;
