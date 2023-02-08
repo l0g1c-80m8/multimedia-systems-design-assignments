@@ -183,10 +183,15 @@ public class SpatialAntiAliasing {
         float s = Float.parseFloat(args[1]);
         int a = Integer.parseInt(args[2]);
 
+        // create original image
         BufferedImage orig = createEmptyImage(ORIG_IMG_WIDTH, ORIG_IMG_HEIGHT);
         addSpokesToImage(orig, n);
 
-        ImageDisplay out = new ImageDisplay(orig, orig);
+        // create an image using original image scaled by s
+        BufferedImage sampled = createEmptyImage((int)(ORIG_IMG_WIDTH * s), (int)(ORIG_IMG_HEIGHT * s));
+        addSpokesToImage(sampled, n);
+
+        ImageDisplay out = new ImageDisplay(orig, sampled);
         out.showImg();
 
         // Terminate the program successfully
