@@ -8,7 +8,7 @@ import java.awt.image.*;
 import javax.swing.*;
 
 import static java.lang.System.exit;
-import static java.lang.System.out;
+// import static java.lang.System.out;
 
 /**
  * Main class for the program:
@@ -25,13 +25,6 @@ public class SpatialAntiAliasing {
      * @param sampled the sampled image to be displayed in the frame
      */
     private record ImageDisplay(BufferedImage orig, BufferedImage sampled) {
-
-        /**
-         * @param orig    the originally constructed image to be displayed on the left
-         * @param sampled the sampled image to be displayed on the right
-         */
-        private ImageDisplay {
-        }
 
             /**
              * Render the two images side by side in a swing frame
@@ -172,12 +165,6 @@ public class SpatialAntiAliasing {
             startY = updatedStartY;
             endX = updatedEndX;
             endY = updatedEndY;
-
-            out.println("Iteration " + i + 1 + ": ");
-            out.println(updatedStartX);
-            out.println(updatedEndX);
-            out.println(updatedStartY);
-            out.println(updatedEndY);
         }
 
     }
