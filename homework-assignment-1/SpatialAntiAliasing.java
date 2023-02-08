@@ -18,6 +18,12 @@ import static java.lang.System.out;
  * @author rutvikpatel
  */
 public class SpatialAntiAliasing {
+
+    /**
+     * Nested class to render the images to the swing frame
+     * @param orig original image to be displayed in the frame
+     * @param sampled the sampled image to be displayed in the frame
+     */
     private record ImageDisplay(BufferedImage orig, BufferedImage sampled) {
 
         /**
@@ -75,6 +81,13 @@ public class SpatialAntiAliasing {
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             }
         }
+
+    /**
+     * Create an empty image with only white pixels of given size
+     * @param width width of the image - number of pixels in each line
+     * @param height height of the image - number of lines in the image
+     * @return the newly created white image
+     */
     private static BufferedImage createEmptyImage(int width, int height) {
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -94,6 +107,15 @@ public class SpatialAntiAliasing {
         return img;
     }
 
+    /**
+     * Add a line to the image
+     *
+     * @param image image to which line needs to be added
+     * @param x1 start of line (x coordinate)
+     * @param y1 start of line (y coordinate)
+     * @param x2 end of line (x coordinate)
+     * @param y2 end of line (y coordinate)
+     */
     private static void drawLine(BufferedImage image, int x1, int y1, int x2, int y2) {
         Graphics2D g = image.createGraphics();
         g.setColor(Color.BLACK);
@@ -102,6 +124,12 @@ public class SpatialAntiAliasing {
         g.drawImage(image, 0, 0, null);
     }
 
+    /**
+     * Add the n lines (spokes) to the image
+     *
+     * @param img image that need to be manipulated
+     * @param n number of lines to be added to the image
+     */
     private static void addSpokesToImage(BufferedImage img, int n) {
         // define endpoints for the first line
         int startX = 0;
@@ -112,7 +140,7 @@ public class SpatialAntiAliasing {
         // define center (origin) about which to rotate the line endpoints and angle (radians) by which to rotate the lines
         int centerX = img.getWidth() / 2;
         int centerY =  img.getHeight() / 2;
-        double rotAngle = Math.toRadians(180 / n);
+        double rotAngle = Math.toRadians((double)180 / n);
 
         // draw n lines starting with a line across the primary diagonal
         for (int i = 0; i < n; i++) {
@@ -145,7 +173,7 @@ public class SpatialAntiAliasing {
             endX = updatedEndX;
             endY = updatedEndY;
 
-            out.println("Iteration " + Integer.toString(i + 1) + ": ");
+            out.println("Iteration " + i + 1 + ": ");
             out.println(updatedStartX);
             out.println(updatedEndX);
             out.println(updatedStartY);
