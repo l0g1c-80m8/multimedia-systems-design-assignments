@@ -169,6 +169,27 @@ public class SpatialAntiAliasing {
 
     }
 
+    /**
+     * Perform the sampling on original image to fill in values in the new image
+     * @param orig original image used to sample
+     * @param sampled sampled image generated as a result of sampling
+     * @param scaleFactor the factor by which the image is scaled down
+     * @param antiAliasing boolean parameter to determine is anti-aliasing is to be performed or not
+     */
+    private static void sampleImage(BufferedImage orig, BufferedImage sampled, float scaleFactor, boolean antiAliasing) {
+        for (int x = 0; x < sampled.getWidth(); x++) {
+            for (int y = 0; y < sampled.getHeight(); y++) {
+                int pix;
+                if (antiAliasing) {
+                    pix = orig.getRGB((int)(x / scaleFactor), (int)(y / scaleFactor));
+                } else {
+                    pix = orig.getRGB((int)(x / scaleFactor), (int)(y / scaleFactor));
+                }
+                sampled.setRGB(x, y, pix);
+            }
+        }
+    }
+
     private final static int ORIG_IMG_WIDTH = 512;
     private final static int ORIG_IMG_HEIGHT = 512;
 
@@ -181,7 +202,7 @@ public class SpatialAntiAliasing {
 
         int n = Integer.parseInt(args[0]);
         float s = Float.parseFloat(args[1]);
-        int a = Integer.parseInt(args[2]);
+        boolean a = Boolean.parseBoolean(args[2]);
 
         // create original image
         BufferedImage orig = createEmptyImage(ORIG_IMG_WIDTH, ORIG_IMG_HEIGHT);
@@ -189,7 +210,7 @@ public class SpatialAntiAliasing {
 
         // create an image using original image scaled by s
         BufferedImage sampled = createEmptyImage((int)(ORIG_IMG_WIDTH * s), (int)(ORIG_IMG_HEIGHT * s));
-        addSpokesToImage(sampled, n);
+        sampleImage(orig, sampled, s, a);
 
         ImageDisplay out = new ImageDisplay(orig, sampled);
         out.showImg();
