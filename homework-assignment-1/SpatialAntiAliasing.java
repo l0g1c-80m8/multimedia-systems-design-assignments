@@ -125,20 +125,18 @@ public class SpatialAntiAliasing {
      * @param n number of lines to be added to the image
      */
     private static void addSpokesToImage(BufferedImage img, int n) {
-        // define endpoints for the first line
-        int startX = 0;
-        int endX = img.getWidth() - 1;
-        int startY = 0;
-        int endY = img.getHeight() - 1;
-
         // define center (origin) about which to rotate the line endpoints and angle (radians) by which to rotate the lines
         int centerX = img.getWidth() / 2;
         int centerY =  img.getHeight() / 2;
-        double rotAngle = Math.toRadians((double)180 / n);
+
+        // define endpoints for the first line (ends are always at the center)
+        int startX = 0;
+        int startY = 0;
+        double rotAngle = Math.toRadians((double)360 / n);
 
         // draw n lines starting with a line across the primary diagonal
         for (int i = 0; i < n; i++) {
-            drawLine(img, startX, startY, endX, endY);
+            drawLine(img, startX, startY, centerX, centerY);
 
             // transform line coordinates by rotAngle about the origin to get new line endpoints
             int updatedStartX = (int)Math.round(
@@ -146,26 +144,14 @@ public class SpatialAntiAliasing {
                             (startX - centerX) * Math.cos(rotAngle) -
                             (startY - centerY) * Math.sin(rotAngle)
             );
-            int updatedEndX = (int)Math.round(
-                    centerX +
-                            (endX - centerX) * Math.cos(rotAngle) -
-                            (endY - centerY) * Math.sin(rotAngle)
-            );
             int updatedStartY = (int)Math.round(
                     centerY +
                             (startX - centerX) * Math.sin(rotAngle) +
                             (startY - centerY) * Math.cos(rotAngle)
             );
-            int updatedEndY = (int)Math.round(
-                    centerY +
-                            (endX - centerX) * Math.sin(rotAngle) +
-                            (endY - centerY) * Math.cos(rotAngle)
-            );
 
             startX = updatedStartX;
             startY = updatedStartY;
-            endX = updatedEndX;
-            endY = updatedEndY;
         }
 
     }
