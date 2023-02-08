@@ -22,7 +22,7 @@ a - A boolean value (0 or 1) indicating whether to perform anti-aliasing.
 
 #### The results for the experiments described in the homework specs. can be found here:
 - [Experimental Analysis](https://docs.google.com/document/d/1Kwif_kYDHaFsFIYQtV6ImcbEmn2T79_qLTCSGNEbfuM/edit?usp=sharing)
-- [Results from the experimentation](https://drive.google.com/drive/folders/1H_t-mGbfAKybV21AEpGd2UfQoU4a7v7r?usp=sharing)
+- [Output from the experimentation](https://drive.google.com/drive/folders/1H_t-mGbfAKybV21AEpGd2UfQoU4a7v7r?usp=sharing)
 
 #### Demo run for parameters (n=64 [lines], s=0.5 ([scale factor], a=0 [no anti-aliasing])
 
