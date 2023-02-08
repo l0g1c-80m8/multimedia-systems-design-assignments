@@ -140,22 +140,22 @@ public class SpatialAntiAliasing {
             drawLine(img, startX, startY, endX, endY);
 
             // transform line coordinates by rotAngle about the origin to get new line endpoints
-            int updatedStartX = (int)Math.ceil(
+            int updatedStartX = (int)Math.round(
                     centerX +
                             (startX - centerX) * Math.cos(rotAngle) -
                             (startY - centerY) * Math.sin(rotAngle)
             );
-            int updatedEndX = (int)Math.ceil(
+            int updatedEndX = (int)Math.round(
                     centerX +
                             (endX - centerX) * Math.cos(rotAngle) -
                             (endY - centerY) * Math.sin(rotAngle)
             );
-            int updatedStartY = (int)Math.ceil(
+            int updatedStartY = (int)Math.round(
                     centerY +
                             (startX - centerX) * Math.sin(rotAngle) +
                             (startY - centerY) * Math.cos(rotAngle)
             );
-            int updatedEndY = (int)Math.ceil(
+            int updatedEndY = (int)Math.round(
                     centerY +
                             (endX - centerX) * Math.sin(rotAngle) +
                             (endY - centerY) * Math.cos(rotAngle)
