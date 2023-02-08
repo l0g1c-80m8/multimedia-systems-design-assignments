@@ -9,7 +9,7 @@ javac SpatialAntiAliasing.java
 
 CURR_S=$2
 # loop until all values for scale factor s from max_s to min_s differing by delta_s are covered
-while [ "$(echo "$CURR_S > $3" | bc -l)" == 1 ]
+while [ "$(echo "$CURR_S >= $3" | bc -l)" == 1 ]
 do
   echo "INFO: Parameters used are n=$1, s=$CURR_S, a=$5"
   # run the compiled bytecode
