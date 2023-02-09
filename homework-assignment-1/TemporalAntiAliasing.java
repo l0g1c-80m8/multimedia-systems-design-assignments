@@ -47,15 +47,6 @@ public class TemporalAntiAliasing {
             renderThread.start();
         }
 
-        public void stop() {
-            status = RenderStatus.STOPPED;
-            try {
-                renderThread.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
         public boolean isRendering() {
             return status == RenderStatus.RUNNING;
         }
