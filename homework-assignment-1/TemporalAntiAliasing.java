@@ -65,15 +65,14 @@ public class TemporalAntiAliasing {
             vd.updateFrames();
         }
 
-        protected void update(boolean shouldUpdate) {
+        protected void update() {
             double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
             // If fps match, sample the current original image and construct display image
             // set the new frame for the videos
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
             else
-                if (shouldUpdate)
-                    vd.setSampled(this.vd.getOrig());
+                vd.setSampled(this.vd.getOrig());
 
             // reset the counter when the image returns to the first frame position to prevent overflow of the counter
             if (initialRotAngle / Math.toRadians(0) == 0.0d)
@@ -86,9 +85,8 @@ public class TemporalAntiAliasing {
             while (isRendering()) {
                 long finishTime = System.currentTimeMillis();
                 long timeElapsed = finishTime - startTime;
-                boolean shouldUpdate = timeElapsed > this.renderRate;
-                update(shouldUpdate);
-                if (shouldUpdate) {
+                if (timeElapsed > this.renderRate) {
+                    update();
                     render();
                     startTime = System.currentTimeMillis();
                 }
