@@ -34,12 +34,12 @@ public class TemporalAntiAliasing {
         private RenderStatus status;
         private Thread renderThread;
         private final int n;
-        private final double fps;
         private long startTime;
         private final VideoDisplay vd;
-        long counter;
-        double rateOfRotation;
+        private long counter;
+        private final double rateOfRotation;
         private final RenderLoopTarget renderTarget;
+        private final long renderRate;
 
         public void run() {
             status = RenderStatus.RUNNING;
@@ -85,7 +85,7 @@ public class TemporalAntiAliasing {
             while (isRendering()) {
                 long finishTime = System.currentTimeMillis();
                 long timeElapsed = finishTime - startTime;
-                if (timeElapsed > RENDER_RATE) {
+                if (timeElapsed > this.renderRate) {
                     update();
                     render();
                     startTime = System.currentTimeMillis();
@@ -93,9 +93,9 @@ public class TemporalAntiAliasing {
             }
         }
 
-        RenderLoop(int n, double s, double fps, VideoDisplay vd, RenderLoopTarget renderTarget) {
+        RenderLoop(int n, double rateOfRotation, VideoDisplay vd, RenderLoopTarget renderTarget, long renderRate) {
             this.n = n;
-            this.fps = fps;
+            this.renderRate = renderRate;
             this.status = RenderStatus.STOPPED;
 
             // store the object for VideoDisplay in a handle
@@ -104,7 +104,7 @@ public class TemporalAntiAliasing {
             // create a counter to keep track of the frame to be displayed
             this.counter = 0L;
             // store the rate of rotation/revolutions of the image in radians / sec
-            this.rateOfRotation = s * 360.0d;
+            this.rateOfRotation = rateOfRotation;
 
             // set startTime default to now (first frame can render at higher fps)
             this.startTime = System.currentTimeMillis();
@@ -319,9 +319,20 @@ public class TemporalAntiAliasing {
         // create an object for video display class
         VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
 
-        // run the render loop
-        RenderLoop rlLeft = new RenderLoop(n, s, fps, vd, RenderLoopTarget.LEFT);
-        RenderLoop rlRight = new RenderLoop(n / 2, s * 2, fps, vd, RenderLoopTarget.RIGHT);
+        // create and run the render loops
+        RenderLoop rlLeft = new RenderLoop(
+                n,
+                s * 360.0d, vd,
+                RenderLoopTarget.LEFT,
+                RENDER_RATE
+        );
+        RenderLoop rlRight = new RenderLoop(
+                n / 2,
+                s * 360.0d * 2,
+                vd,
+                RenderLoopTarget.RIGHT,
+                Math.round(1000.0d / fps)
+        );
         rlLeft.run();
         rlRight.run();
     }
