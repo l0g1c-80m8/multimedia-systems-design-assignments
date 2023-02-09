@@ -19,6 +19,10 @@ import static java.lang.System.exit;
  */
 public class TemporalAntiAliasing {
 
+    private enum RenderLoopTarget {
+        LEFT, RIGHT
+    }
+
     private static class RenderLoop {
         // references for game loop design pattern:
         // - https://java-design-patterns.com/patterns/game-loop/#explanation
@@ -30,12 +34,12 @@ public class TemporalAntiAliasing {
         private RenderStatus status;
         private Thread renderThread;
         private final int n;
-        private final double s;
         private final double fps;
         private long startTime;
         private final VideoDisplay vd;
         long counter;
         double rateOfRotation;
+        private final RenderLoopTarget renderTarget;
 
         public void run() {
             status = RenderStatus.RUNNING;
@@ -64,8 +68,11 @@ public class TemporalAntiAliasing {
         protected void update() {
             double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
             // If fps match, sample the current original image and construct display image
-            // set the new frame for original video
-            vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
+            // set the new frame for the videos
+            if (this.renderTarget == RenderLoopTarget.LEFT)
+                vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
+            else
+                vd.setSampled(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
 
             // reset the counter when the image returns to the first frame position to prevent overflow of the counter
             if (initialRotAngle / Math.toRadians(0) == 0.0d)
@@ -86,9 +93,8 @@ public class TemporalAntiAliasing {
             }
         }
 
-        RenderLoop(int n, double s, double fps, VideoDisplay vd) {
+        RenderLoop(int n, double s, double fps, VideoDisplay vd, RenderLoopTarget renderTarget) {
             this.n = n;
-            this.s = s;
             this.fps = fps;
             this.status = RenderStatus.STOPPED;
 
@@ -98,10 +104,13 @@ public class TemporalAntiAliasing {
             // create a counter to keep track of the frame to be displayed
             this.counter = 0L;
             // store the rate of rotation/revolutions of the image in radians / sec
-            this.rateOfRotation = this.s * 360.0d;
+            this.rateOfRotation = s * 360.0d;
 
             // set startTime default to now (first frame can render at higher fps)
             this.startTime = System.currentTimeMillis();
+
+            // set the target for this render loop
+            this.renderTarget = renderTarget;
         }
     }
 
@@ -195,7 +204,7 @@ public class TemporalAntiAliasing {
          */
         public void updateFrames() {
             lbIm1.setIcon(new ImageIcon(this.orig));
-//            lbIm2.setIcon(new ImageIcon(this.sampled));
+            lbIm2.setIcon(new ImageIcon(this.sampled));
             frame.repaint();
         }
     }
@@ -307,9 +316,14 @@ public class TemporalAntiAliasing {
         double s = Double.parseDouble(args[1]);
         double fps = Double.parseDouble(args[2]);
 
+        // create an object for video display class
+        VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
+
         // run the render loop
-        RenderLoop rl = new RenderLoop(n, s, fps, new VideoDisplay(createEmptyImage(), createEmptyImage()));
-        rl.run();
+        RenderLoop rlLeft = new RenderLoop(n, s, fps, vd, RenderLoopTarget.LEFT);
+        RenderLoop rlRight = new RenderLoop(n / 2, s * 2, fps, vd, RenderLoopTarget.RIGHT);
+        rlLeft.run();
+        rlRight.run();
     }
 }
 
