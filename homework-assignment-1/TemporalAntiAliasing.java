@@ -19,6 +19,102 @@ import static java.lang.System.exit;
  */
 public class TemporalAntiAliasing {
 
+    private static class RenderLoop {
+        // references for game loop design pattern:
+        // - https://java-design-patterns.com/patterns/game-loop/#explanation
+        // - https://gist.github.com/martincruzot/a55d744a77448f1adaa9
+
+        private enum RenderStatus {
+            RUNNING, STOPPED
+        }
+        private RenderStatus status;
+        private Thread renderThread;
+        private final int n;
+        private final double s;
+        private final double fps;
+        private long startTime;
+
+        private BufferedImage orig;
+        private BufferedImage sampled;
+        private final VideoDisplay vd;
+        long counter;
+        double rateOfRotation;
+
+        public void run() {
+            status = RenderStatus.RUNNING;
+            renderThread = new Thread(this::processRenderLoop);
+            renderThread.start();
+        }
+
+        public void stop() {
+            status = RenderStatus.STOPPED;
+            try {
+                renderThread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public boolean isRendering() {
+            return status == RenderStatus.RUNNING;
+        }
+
+        protected void render() {
+            // force an update to the screen
+            vd.updateFrames();
+        }
+
+        protected void update() {
+            double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
+            this.orig = createEmptyImage();
+            addSpokesToImage(this.orig, n, initialRotAngle);
+
+            // If fps match, sample the current original image and construct display image
+            // set the new frame for original video
+            vd.setOrig(this.orig);
+
+            // reset the counter when the image returns to the first frame position to prevent overflow of the counter
+            if (initialRotAngle / Math.toRadians(0) == 0.0d)
+                this.counter = 0L;
+            // update the counter for next iteration
+            this.counter++;
+        }
+
+        protected void processRenderLoop() {
+            while (isRendering()) {
+                long finishTime = System.currentTimeMillis();
+                long timeElapsed = finishTime - startTime;
+                if (timeElapsed > RENDER_RATE) {
+                    update();
+                    render();
+                    startTime = System.currentTimeMillis();
+                }
+            }
+        }
+
+        RenderLoop(int n, double s, double fps) {
+            this.n = n;
+            this.s = s;
+            this.fps = fps;
+            this.status = RenderStatus.STOPPED;
+
+            // create original and sampled images (first frames of the videos)
+            this.orig = createEmptyImage();
+            this.sampled = createEmptyImage();
+
+            // create an object for VideoDisplay and store it in a handle
+            this.vd = new VideoDisplay(orig, sampled);
+
+            // create a counter to keep track of the frame to be displayed
+            this.counter = 0L;
+            // store the rate of rotation/revolutions of the image in radians / sec
+            this.rateOfRotation = this.s * 360.0d;
+
+            // set startTime default to now (first frame can render at higher fps)
+            this.startTime = System.currentTimeMillis();
+        }
+    }
+
     /**
      * Nested class to render the videos to the swing frame side-by-side
      */
@@ -215,50 +311,14 @@ public class TemporalAntiAliasing {
             exit(1);
         }
 
+        // read command line arguments
         int n = Integer.parseInt(args[0]);
         double s = Double.parseDouble(args[1]);
         double fps = Double.parseDouble(args[2]);
 
-        // create original and sampled images (first frames of the videos)
-        BufferedImage orig = createEmptyImage();
-        addSpokesToImage(orig, n, Math.toRadians(0));
-        BufferedImage sampled = createEmptyImage();
-        addSpokesToImage(sampled, n, Math.toRadians(0));
-
-        // create an object for VideoDisplay and store it in a handle
-        VideoDisplay vd = new VideoDisplay(orig, sampled);
-
-        // create a counter to keep track of the frame to be displayed
-        long counter = 0L;
-        // store the rate of rotation/revolutions of the image in radians / sec
-        double rateOfRotation = s * 360.0d;
-
-        while (true) {
-            // Rotate the original image by the speed
-            // need to take negative because counter clock-wise motion is positive while converting to radians
-            double initialRotAngle = -Math.toRadians(rateOfRotation * ((RENDER_RATE / 1000.0d) * counter));
-            orig = createEmptyImage();
-            addSpokesToImage(orig, n, initialRotAngle);
-
-            // If fps match, sample the current original image and construct display image
-            // set the new frame for original video
-            vd.setOrig(orig);
-            // force an update to the screen
-            vd.updateFrames();
-            // pause execution for a while
-
-            // reset the counter when the image returns to the first frame position to prevent overflow of the counter
-            if (initialRotAngle / Math.toRadians(0) == 0.0d)
-                counter = 0L;
-            // update the counter for next iteration
-            counter++;
-
-            // sleep until next update/render
-            try {
-                Thread.sleep(RENDER_RATE);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        // run the render loop
+        RenderLoop rl = new RenderLoop(n, s, fps);
+        rl.run();
     }
 }
+
