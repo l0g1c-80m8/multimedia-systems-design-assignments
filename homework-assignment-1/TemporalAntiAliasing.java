@@ -180,7 +180,7 @@ public class TemporalAntiAliasing {
 
             frame.pack();
             frame.setVisible(true);
-//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         }
 
         /**
