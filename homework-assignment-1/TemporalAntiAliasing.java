@@ -146,8 +146,8 @@ public class TemporalAntiAliasing {
             GridBagLayout gLayout = new GridBagLayout();
             frame.getContentPane().setLayout(gLayout);
 
-            JLabel lbText1 = new JLabel("Original image (Left)");
-            JLabel lbText2 = new JLabel("Sampled image (Right)");
+            JLabel lbText1 = new JLabel("Original video (Left)");
+            JLabel lbText2 = new JLabel("Sampled video (Right)");
             lbText1.setHorizontalAlignment(SwingConstants.CENTER);
             lbText2.setHorizontalAlignment(SwingConstants.CENTER);
 
