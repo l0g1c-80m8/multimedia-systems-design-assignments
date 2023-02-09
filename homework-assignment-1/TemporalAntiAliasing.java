@@ -65,14 +65,15 @@ public class TemporalAntiAliasing {
             vd.updateFrames();
         }
 
-        protected void update() {
+        protected void update(boolean shouldUpdate) {
             double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
             // If fps match, sample the current original image and construct display image
             // set the new frame for the videos
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
             else
-                vd.setSampled(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
+                if (shouldUpdate)
+                    vd.setSampled(this.vd.getOrig());
 
             // reset the counter when the image returns to the first frame position to prevent overflow of the counter
             if (initialRotAngle / Math.toRadians(0) == 0.0d)
@@ -85,8 +86,9 @@ public class TemporalAntiAliasing {
             while (isRendering()) {
                 long finishTime = System.currentTimeMillis();
                 long timeElapsed = finishTime - startTime;
-                if (timeElapsed > this.renderRate) {
-                    update();
+                boolean shouldUpdate = timeElapsed > this.renderRate;
+                update(shouldUpdate);
+                if (shouldUpdate) {
                     render();
                     startTime = System.currentTimeMillis();
                 }
@@ -192,6 +194,13 @@ public class TemporalAntiAliasing {
         }
 
         /**
+         * Getter for the orig member identifier
+         */
+        public BufferedImage getOrig() {
+            return this.orig;
+        }
+
+        /**
          * Setter for the sampled member identifier
          * @param sampled new frame for the right video
          */
@@ -212,7 +221,7 @@ public class TemporalAntiAliasing {
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
 
-    private final static long RENDER_RATE = 16L; // rate at which to render the images in milliseconds
+    private final static long RENDER_RATE = 1L; // rate at which to render the images in milliseconds
 
     /**
      * Create an empty image with only white pixels of given size
@@ -327,8 +336,8 @@ public class TemporalAntiAliasing {
                 RENDER_RATE
         );
         RenderLoop rlRight = new RenderLoop(
-                n / 2,
-                s * 360.0d * 2,
+                n,
+                0.0d,
                 vd,
                 RenderLoopTarget.RIGHT,
                 Math.round(1000.0d / fps)
