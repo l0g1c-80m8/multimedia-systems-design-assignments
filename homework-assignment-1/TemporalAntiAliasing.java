@@ -33,9 +33,6 @@ public class TemporalAntiAliasing {
         private final double s;
         private final double fps;
         private long startTime;
-
-        private BufferedImage orig;
-        private BufferedImage sampled;
         private final VideoDisplay vd;
         long counter;
         double rateOfRotation;
@@ -66,12 +63,9 @@ public class TemporalAntiAliasing {
 
         protected void update() {
             double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
-            this.orig = createEmptyImage();
-            addSpokesToImage(this.orig, n, initialRotAngle);
-
             // If fps match, sample the current original image and construct display image
             // set the new frame for original video
-            vd.setOrig(this.orig);
+            vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
 
             // reset the counter when the image returns to the first frame position to prevent overflow of the counter
             if (initialRotAngle / Math.toRadians(0) == 0.0d)
@@ -92,18 +86,14 @@ public class TemporalAntiAliasing {
             }
         }
 
-        RenderLoop(int n, double s, double fps) {
+        RenderLoop(int n, double s, double fps, VideoDisplay vd) {
             this.n = n;
             this.s = s;
             this.fps = fps;
             this.status = RenderStatus.STOPPED;
 
-            // create original and sampled images (first frames of the videos)
-            this.orig = createEmptyImage();
-            this.sampled = createEmptyImage();
-
-            // create an object for VideoDisplay and store it in a handle
-            this.vd = new VideoDisplay(orig, sampled);
+            // store the object for VideoDisplay in a handle
+            this.vd = vd;
 
             // create a counter to keep track of the frame to be displayed
             this.counter = 0L;
@@ -260,8 +250,9 @@ public class TemporalAntiAliasing {
      *
      * @param img image that need to be manipulated
      * @param n number of lines to be added to the image
+     * @return the image with spokes
      */
-    private static void addSpokesToImage(BufferedImage img, int n, double initialRotAngle) {
+    private static BufferedImage addSpokesToImage(BufferedImage img, int n, double initialRotAngle) {
         // define center (origin) about which to rotate the line endpoints and angle (radians) by which to rotate the lines
         int centerX = img.getWidth() / 2;
         int centerY =  img.getHeight() / 2;
@@ -301,7 +292,7 @@ public class TemporalAntiAliasing {
             startX = updatedStartX;
             startY = updatedStartY;
         }
-        System.out.println();
+        return img;
     }
 
     public static void main(String[] args) {
@@ -317,7 +308,7 @@ public class TemporalAntiAliasing {
         double fps = Double.parseDouble(args[2]);
 
         // run the render loop
-        RenderLoop rl = new RenderLoop(n, s, fps);
+        RenderLoop rl = new RenderLoop(n, s, fps, new VideoDisplay(createEmptyImage(), createEmptyImage()));
         rl.run();
     }
 }
