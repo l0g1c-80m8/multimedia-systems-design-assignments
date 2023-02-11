@@ -243,9 +243,9 @@ public class TemporalAntiAliasing {
      * @param x2 end of line (x coordinate)
      * @param y2 end of line (y coordinate)
      */
-    private static void drawLine(BufferedImage image, int x1, int y1, int x2, int y2) {
+    private static void drawLine(BufferedImage image, int x1, int y1, int x2, int y2, Color color) {
         Graphics2D g = image.createGraphics();
-        g.setColor(Color.BLACK);
+        g.setColor(color);
         g.setStroke(new BasicStroke(1));
         g.drawLine(x1, y1, x2, y2);
         g.drawImage(image, 0, 0, null);
@@ -276,12 +276,14 @@ public class TemporalAntiAliasing {
                         -centerY * Math.cos(initialRotAngle)
         );
 
+        // draw the first line with red color to test
+        drawLine(img, startX, startY, centerX, centerY, Color.RED);
+
         // calculate the rotation angle between the spokes
         double rotAngle = Math.toRadians((double)360 / n);
 
         // draw n lines starting with a line across the primary diagonal
-        for (int i = 0; i < n; i++) {
-            drawLine(img, startX, startY, centerX, centerY);
+        for (int i = 1; i < n; i++) {
 
             // transform line coordinates by rotAngle about the origin to get new line endpoints
             int updatedStartX = (int)Math.round(
@@ -297,6 +299,8 @@ public class TemporalAntiAliasing {
 
             startX = updatedStartX;
             startY = updatedStartY;
+
+            drawLine(img, startX, startY, centerX, centerY, Color.BLACK);
         }
         return img;
     }
