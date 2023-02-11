@@ -209,7 +209,7 @@ public class TemporalAntiAliasing {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static long RENDER_RATE = 16; // rate at which to render the images in milliseconds
+    private final static long RENDER_RATE = 10L; // rate at which to render the images in milliseconds
 
     /**
      * Create an empty image with only white pixels of given size
