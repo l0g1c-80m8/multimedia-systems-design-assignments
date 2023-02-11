@@ -76,7 +76,7 @@ public class TemporalAntiAliasing {
             while (isRendering()) {
                 long finishTime = System.currentTimeMillis();
                 long timeElapsed = finishTime - startTime;
-                if (timeElapsed > this.renderRate) {
+                if (timeElapsed >= this.renderRate) {
                     update();
                     render();
                     startTime = System.currentTimeMillis();
