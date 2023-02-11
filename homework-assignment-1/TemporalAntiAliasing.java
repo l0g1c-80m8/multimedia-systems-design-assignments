@@ -321,22 +321,22 @@ public class TemporalAntiAliasing {
         VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
 
         // create and run the render loops
-        RenderLoop rlLeft = new RenderLoop(
+        Runnable leftRunner = new RenderLoop(
                 n,
                 s * 360.0d,
                 vd,
                 RenderLoopTarget.LEFT,
                 RENDER_RATE
-        );
-        RenderLoop rlRight = new RenderLoop(
+        )::run;
+        Runnable rightRunner = new RenderLoop(
                 n,
                 0.0d,
                 vd,
                 RenderLoopTarget.RIGHT,
                 Math.round(1000.0d / fps)
-        );
-        rlLeft.run();
-        rlRight.run();
+        )::run;
+        leftRunner.run();
+        rightRunner.run();
     }
 }
 
