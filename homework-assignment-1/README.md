@@ -55,12 +55,29 @@ fps - Frames per second (sampling rate) to render the second video.
 - [Output from the experimentation](https://drive.google.com/drive/folders/1H_t-mGbfAKybV21AEpGd2UfQoU4a7v7r?usp=sharing)
 
 #### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=25.0 [sampling rate])
+<video width="600" height="400" controls>
+  <source src="assets/hw1-exp2-n64-s10-fps25.mov" type="video/mov">
+</video>
 
 #### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=16.0 [sampling rate])
+<video width="600" height="400" controls>
+  <source src="assets/hw1-exp2-n64-s10-fps16.mov" type="video/mov">
+</video>
 
 #### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=10.0 [sampling rate])
+<video width="600" height="400" controls>
+  <source src="assets/hw1-exp2-n64-s10-fps8.mov" type="video/mov">
+</video>
 
 #### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=8.0 [sampling rate])
+<video width="600" height="400" controls>
+  <source src="assets/hw1-exp2-n64-s10-fps10.mov" type="video/mov">
+</video>
+
+#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=6.0 [sampling rate])
+<video width="600" height="400" controls>
+  <source src="assets/hw1-exp2-n64-s10-fps6.mov" type="video/mov">
+</video>
 
 Additional references
 - https://www.mekanizmalar.com/wagon-wheel-effect.html
