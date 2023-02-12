@@ -73,14 +73,15 @@ public class Mypart2 {
         protected void update(double offsetAngle) {
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
-            else
+            else {
                 /*
-                * Set the image to the newly generated image as sampling for larger images is delayed because of
-                * updates to the original image. As the render loops are independent, they are not synchronized
-                * and thus each sample frame obtained from the original video is a frame in a future time-step
-                * */
-//                this.vd.setSampled(this.vd.getOrig());
-                 this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+                 * Set the image to the newly generated image as sampling for larger images is delayed because of
+                 * updates to the original image. As the render loops are independent, they are not synchronized
+                 * and thus each sample frame obtained from the original video is a frame in a future time-step
+                 * */
+                this.vd.setSampledTheoretical(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+                this.vd.setSampledActual(this.vd.getOrig());
+            }
         }
 
         /**
@@ -152,19 +153,23 @@ public class Mypart2 {
     private static class VideoDisplay {
 
         private BufferedImage orig;
-        private BufferedImage sampled;
+        private BufferedImage sampledActual;
+        private BufferedImage sampledTheoretical;
         private JFrame frame;
         private JLabel lbIm1;
         private JLabel lbIm2;
+        private JLabel lbIm3;
 
         /**
          * Constructor for the inner class to hold the images (frames) to be rendered at the moment for the video
          * @param orig Starting frame for the source video
-         * @param sampled Starting frame for the sampled video
+         * @param sampledActual Starting frame for the sampled video
+         * @param sampledTheoretical Starting frame for the sampled video
          */
-        private VideoDisplay(BufferedImage orig, BufferedImage sampled) {
+        private VideoDisplay(BufferedImage orig, BufferedImage sampledActual, BufferedImage sampledTheoretical) {
             this.orig = orig;
-            this.sampled = sampled;
+            this.sampledActual = sampledActual;
+            this.sampledTheoretical = sampledTheoretical;
             initializeFrame();
         }
 
@@ -177,17 +182,20 @@ public class Mypart2 {
             frame.getContentPane().setLayout(gLayout);
 
             JLabel lbText1 = new JLabel("Original video (Left)");
-            JLabel lbText2 = new JLabel("Sampled video (Right)");
+            JLabel lbText2 = new JLabel("Sampled video (actual) (Right)");
+            JLabel lbText3 = new JLabel("Sampled video (theoretical) (Right)");
             lbText1.setHorizontalAlignment(SwingConstants.CENTER);
             lbText2.setHorizontalAlignment(SwingConstants.CENTER);
+            lbText3.setHorizontalAlignment(SwingConstants.CENTER);
 
             lbIm1 = new JLabel(new ImageIcon(orig));
-            lbIm2 = new JLabel(new ImageIcon(sampled));
+            lbIm2 = new JLabel(new ImageIcon(sampledActual));
+            lbIm3 = new JLabel(new ImageIcon(sampledTheoretical));
 
             GridBagConstraints c = new GridBagConstraints();
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.CENTER;
-            c.weightx = 0.5;
+            c.weightx = 0.33;
             c.gridx = 0;
             c.gridy = 0;
             c.insets = new Insets(20, 40, 20, 40);
@@ -195,10 +203,17 @@ public class Mypart2 {
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.anchor = GridBagConstraints.CENTER;
-            c.weightx = 0.5;
+            c.weightx = 0.33;
             c.gridx = 1;
             c.gridy = 0;
             frame.getContentPane().add(lbText2, c);
+
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.anchor = GridBagConstraints.CENTER;
+            c.weightx = 0.33;
+            c.gridx = 2;
+            c.gridy = 0;
+            frame.getContentPane().add(lbText3, c);
 
             c.fill = GridBagConstraints.HORIZONTAL;
             c.gridx = 0;
@@ -209,6 +224,11 @@ public class Mypart2 {
             c.gridx = 1;
             c.gridy = 1;
             frame.getContentPane().add(lbIm2, c);
+
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.gridx = 3;
+            c.gridy = 1;
+            frame.getContentPane().add(lbIm3, c);
 
             frame.pack();
             frame.setVisible(true);
@@ -232,10 +252,18 @@ public class Mypart2 {
 
         /**
          * Setter for the sampled member identifier
-         * @param sampled new frame for the right video
+         * @param sampledActual new frame for the right video
          */
-        public void setSampled(BufferedImage sampled) {
-            this.sampled = sampled;
+        public void setSampledActual(BufferedImage sampledActual) {
+            this.sampledActual = sampledActual;
+        }
+
+        /**
+         * Setter for the sampled member identifier
+         * @param sampledTheoretical new frame for the right video
+         */
+        public void setSampledTheoretical(BufferedImage sampledTheoretical) {
+            this.sampledTheoretical = sampledTheoretical;
         }
 
         /**
@@ -243,7 +271,8 @@ public class Mypart2 {
          */
         public void updateFrames() {
             lbIm1.setIcon(new ImageIcon(this.orig));
-            lbIm2.setIcon(new ImageIcon(this.sampled));
+            lbIm2.setIcon(new ImageIcon(this.sampledActual));
+            lbIm3.setIcon(new ImageIcon(this.sampledTheoretical));
             frame.repaint();
         }
     }
@@ -359,7 +388,7 @@ public class Mypart2 {
         double fps = Double.parseDouble(args[2]);
 
         // create an object for video display class
-        VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
+        VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage(), createEmptyImage());
 
         // create and run the render loops
         Runnable leftRunner = new RenderLoop(n, s, fps, vd, RenderLoopTarget.LEFT)::run;
