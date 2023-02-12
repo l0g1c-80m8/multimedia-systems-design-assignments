@@ -17,7 +17,7 @@ import static java.lang.System.out;
  *
  * @author rutvikpatel
  */
-public class TemporalAntiAliasing {
+public class Mypart2 {
 
     private enum RenderLoopTarget {
         LEFT, RIGHT
@@ -260,7 +260,7 @@ public class TemporalAntiAliasing {
         BufferedImage img = new BufferedImage(ORIG_IMG_WIDTH, ORIG_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
 
         for(int y = 0; y < ORIG_IMG_HEIGHT; y++) {
-            for(int x = 0; x < TemporalAntiAliasing.ORIG_IMG_WIDTH; x++) {
+            for(int x = 0; x < Mypart2.ORIG_IMG_WIDTH; x++) {
                 // byte a = (byte) 255;
                 byte r = (byte) 255;
                 byte g = (byte) 255;
