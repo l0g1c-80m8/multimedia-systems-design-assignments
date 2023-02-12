@@ -57,7 +57,13 @@ public class TemporalAntiAliasing {
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
             else
-                this.vd.setSampled(this.vd.getOrig());
+                /*
+                * Set the image to the newly generated image as sampling for larger images is delayed because of
+                * updates to the original image. As the render loops are independent, they are not synchronized
+                * and thus each sample frame obtained from the original video is a frame in a future time-step
+                * */
+//                this.vd.setSampled(this.vd.getOrig());
+                 this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
         }
 
         protected void processRenderLoop() {
@@ -71,7 +77,7 @@ public class TemporalAntiAliasing {
 
             long ticksPerSecond = (long)(1000.0d / updateInterval);
             double changeInAnglePerTick = (this.s * 360.0d) / ticksPerSecond;
-            long numberOfTicksPerRotation = (long)(360.0d / changeInAnglePerTick);
+            double numberOfTicksPerRotation = 360.0d / (changeInAnglePerTick % 360.0d);
             long ticksInCurrentRotation = 0L;
 
             while (isRendering()) {
