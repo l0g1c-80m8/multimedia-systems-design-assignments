@@ -54,11 +54,10 @@ public class TemporalAntiAliasing {
         }
 
         protected void update(double offsetAngle) {
-            if (this.renderTarget == RenderLoopTarget.LEFT) {
+            if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
-            } else {
-                this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
-            }
+            else
+                this.vd.setSampled(this.vd.getOrig());
         }
 
         protected void processRenderLoop() {
@@ -106,7 +105,13 @@ public class TemporalAntiAliasing {
          * @param vd VideoDisplay instance to apply updates and render
          * @param renderTarget the target for the render loop (original/sampled)
          */
-        RenderLoop(int n, double s, double fps, VideoDisplay vd, RenderLoopTarget renderTarget) {
+        RenderLoop(
+                int n,
+                double s,
+                double fps,
+                VideoDisplay vd,
+                RenderLoopTarget renderTarget
+        ) {
             this.vd = vd;
             this.n = n;
             this.s = s;
