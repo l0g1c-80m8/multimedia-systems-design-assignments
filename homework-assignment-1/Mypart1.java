@@ -17,7 +17,7 @@ import static java.lang.System.exit;
  *
  * @author rutvikpatel
  */
-public class SpatialAntiAliasing {
+public class Mypart1 {
 
     /**
      * Nested class to render the images to the swing frame
