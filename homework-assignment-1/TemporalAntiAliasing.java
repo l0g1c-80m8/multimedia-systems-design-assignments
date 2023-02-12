@@ -29,16 +29,14 @@ public class TemporalAntiAliasing {
         // - https://gist.github.com/martincruzot/a55d744a77448f1adaa9
 
         private enum RenderStatus {
-            RUNNING, STOPPED
+            RUNNING
         }
         private RenderStatus status;
         private final int n;
-        private long startTime;
+        private final double s;
+        private final double fps;
         private final VideoDisplay vd;
-        private long counter;
-        private final double rateOfRotation;
         private final RenderLoopTarget renderTarget;
-        private final long renderRate;
 
         public void run() {
             status = RenderStatus.RUNNING;
@@ -55,56 +53,55 @@ public class TemporalAntiAliasing {
             vd.updateFrames();
         }
 
-        protected void update() {
-            double offsetAngle = Math.toRadians(this.rateOfRotation * ((RENDER_INTERVAL / 1000.0d) * this.counter));
-            // If fps match, sample the current original image and construct display image
-            // set the new frame for the videos
-            if (this.renderTarget == RenderLoopTarget.LEFT)
-                vd.setOrig(addSpokesToImage(createEmptyImage(), n, offsetAngle));
-            else
-                vd.setSampled(this.vd.getOrig());
-
-            // update the counter for next iteration
-            this.counter++;
-            // reset the counter when the image returns to the first frame position to prevent overflow of the counter
-            if (offsetAngle / Math.toRadians(0) == 0.0d)
-                this.counter = 0L;
-            // update the counter for next iteration
-            this.counter++;
+        protected void update(double offsetAngle) {
+            if (this.renderTarget == RenderLoopTarget.LEFT) {
+                this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+            } else {
+                this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+            }
         }
 
         protected void processRenderLoop() {
+            long timeOfLastUpdate = System.currentTimeMillis();
+            long updateInterval;
+            if (this.renderTarget == RenderLoopTarget.LEFT) {
+                updateInterval = LOOP_DELAY;
+            } else {
+                updateInterval = (long)(1000.0 / this.fps);
+            }
+
+            long ticksPerSecond = (long)(1000.0d / updateInterval);
+            double changeInAnglePerTick = (this.s * 360.0d) / ticksPerSecond;
+            long numberOfTicksPerRotation = (long)(360.0d / changeInAnglePerTick);
+            long ticksInCurrentRotation = 0L;
+
             while (isRendering()) {
-                long finishTime = System.currentTimeMillis();
-                long timeElapsed = finishTime - startTime;
-                if (timeElapsed >= this.renderRate) {
-                    update();
+                long elapsedTime = System.currentTimeMillis() - timeOfLastUpdate;
+                if (elapsedTime >= updateInterval) {
+                    update(Math.toRadians(ticksInCurrentRotation * changeInAnglePerTick));
                     render();
-                    startTime = System.currentTimeMillis();
+                    ticksInCurrentRotation++;
+                    if (ticksInCurrentRotation >= numberOfTicksPerRotation)
+                        ticksInCurrentRotation = 0;
+                    timeOfLastUpdate = System.currentTimeMillis();
                 }
             }
         }
 
-        RenderLoop(int n, double rateOfRotation, VideoDisplay vd, RenderLoopTarget renderTarget, long renderRate) {
-            this.n = n;
-            this.renderRate = renderRate;
-            this.status = RenderStatus.STOPPED;
-
-            // store the object for VideoDisplay in a handle
+        /**
+         * Constructor for the RenderLoop class
+         * @param n the number of lines for each frame of the video
+         * @param s number of rotations/revolutions per second for original video
+         * @param fps sampling rate for the sampled video
+         * @param vd VideoDisplay instance to apply updates and render
+         * @param renderTarget the target for the render loop (original/sampled)
+         */
+        RenderLoop(int n, double s, double fps, VideoDisplay vd, RenderLoopTarget renderTarget) {
             this.vd = vd;
-
-            // create a counter to keep track of the frame to be displayed
-            this.counter = 0L;
-            // store the rate of rotation/revolutions of the image in radians / sec
-            this.rateOfRotation = rateOfRotation;
-
-            // set startTime default to now (first frame can render at higher fps)
-            this.startTime = System.currentTimeMillis();
-
-            // set the target for this render loop
+            this.n = n;
+            this.s = s;
+            this.fps = fps;
             this.renderTarget = renderTarget;
-            
-            out.println();
         }
     }
 
@@ -212,7 +209,7 @@ public class TemporalAntiAliasing {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static long RENDER_INTERVAL = 10L; // rate at which to render the images in milliseconds
+    private final static long LOOP_DELAY = 30L; // time before successive renders
 
     /**
      * Create an empty image with only white pixels of given size
@@ -324,20 +321,8 @@ public class TemporalAntiAliasing {
         VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
 
         // create and run the render loops
-        Runnable leftRunner = new RenderLoop(
-                n,
-                s * 360.0d,
-                vd,
-                RenderLoopTarget.LEFT,
-                RENDER_INTERVAL
-        )::run;
-        Runnable rightRunner = new RenderLoop(
-                n,
-                0.0d,
-                vd,
-                RenderLoopTarget.RIGHT,
-                Math.round(1000.0d / fps)
-        )::run;
+        Runnable leftRunner = new RenderLoop(n, s, fps, vd, RenderLoopTarget.LEFT)::run;
+        Runnable rightRunner = new RenderLoop(n, s, fps, vd, RenderLoopTarget.RIGHT)::run;
         leftRunner.run();
         rightRunner.run();
     }
