@@ -75,3 +75,5 @@ Additional references
 - https://jackschaedler.github.io/circles-sines-signals/sampling4.html
 - https://www.technomaxme.com/nyquist-theory-for-rotational-order-analysis/
 - https://visualize-it.github.io/stroboscopic_effect/simulation.html
+
+### Part 3. Temporal Anti-Aliasing with Spatial Anti-Aliasing
