@@ -15,8 +15,8 @@ by a factor of ```s```. The task is to observe the scaled image with and without
 The program takes in the following parameters:
 ```
 n - Number of lines to draw on the otherwise white image.
-    (The lines are arraged like spokes in a wheel with each line seperated by 360/n degrees) 
-s - Scaling factor (between 0 and 1)
+    (The lines are arraged like spokes in a wheel with each line seperated by 360/n degrees)
+s - Scaling factor (between 0 and 1).
 a - A boolean value (0 or 1) indicating whether to perform anti-aliasing.
 ```
 
@@ -24,11 +24,11 @@ a - A boolean value (0 or 1) indicating whether to perform anti-aliasing.
 - [Experimental Analysis](https://docs.google.com/document/d/1Kwif_kYDHaFsFIYQtV6ImcbEmn2T79_qLTCSGNEbfuM/edit?usp=sharing)
 - [Output from the experimentation](https://drive.google.com/drive/folders/1H_t-mGbfAKybV21AEpGd2UfQoU4a7v7r?usp=sharing)
 
-#### Demo run for parameters (n=64 [lines], s=0.5 ([scale factor], a=0 [no anti-aliasing])
+#### Demo run for parameters (n=64 [lines], s=0.5 [scale factor], a=0 [no anti-aliasing])
 
 ![demo without anti-aliasing](assets/sample-without-anti-aliasing.png)
 
-#### Demo run for parameters (n=64 [lines], s=0.5 ([scale factor], a=1 [anti-aliasing])
+#### Demo run for parameters (n=64 [lines], s=0.5 [scale factor], a=1 [anti-aliasing])
 
 ![demo with anti-aliasing](assets/sample-with-anti-aliasing.png)
 
@@ -45,7 +45,7 @@ This experiment demonstrates the wagon wheel effect.
 The program takes in the following parameters:
 ```
 n   - Number of lines to draw on the otherwise white image.
-      (The lines are arraged like spokes in a wheel with each line seperated by 360/n degrees) 
+      (The lines are arraged like spokes in a wheel with each line seperated by 360/n degrees)
 s   - Speed of rotation (rotations per second) of original video.
 fps - Frames per second (sampling rate) to render the second video.
 ```
@@ -54,19 +54,19 @@ fps - Frames per second (sampling rate) to render the second video.
 - [Experimental Analysis](https://docs.google.com/document/d/1Kwif_kYDHaFsFIYQtV6ImcbEmn2T79_qLTCSGNEbfuM/edit?usp=sharing)
 - [Output from the experimentation](https://drive.google.com/drive/folders/1H_t-mGbfAKybV21AEpGd2UfQoU4a7v7r?usp=sharing)
 
-#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=25.0 [sampling rate])
+#### Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=25.0 [sampling rate])
 - [Link](https://drive.google.com/file/d/1TymUFETGow4z8nkHyem2C3XJEcGVbqaS/view?usp=share_link)
 
-#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=16.0 [sampling rate])
+#### Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=16.0 [sampling rate])
 - [Link](https://drive.google.com/file/d/1OprFDlGqCp5k3A9Go_KNLlIgnKiN4ZBJ/view?usp=share_link)
 
-#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=10.0 [sampling rate])
+#### Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=10.0 [sampling rate])
 - [Link](https://drive.google.com/file/d/134SzwqtgCSKa8jtTAha1T8LjH_xNwejq/view?usp=share_link)
 
-#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=8.0 [sampling rate])
+#### Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=8.0 [sampling rate])
 - [Link](https://drive.google.com/file/d/1gkt9sAmiP_IwZ39ZVz6lhlezNq2Gq_au/view?usp=share_link)
 
-#### Demo run for parameters (n=64 [lines], s=10.0 ([speed of rotation], fps=6.0 [sampling rate])
+#### Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=6.0 [sampling rate])
 - [Link](https://drive.google.com/file/d/1w32za05cGwFVc1vrLyVfu4y3WMGK_qnq/view?usp=share_link)
 
 Additional references
@@ -77,3 +77,23 @@ Additional references
 - https://visualize-it.github.io/stroboscopic_effect/simulation.html
 
 ### Part 3. Temporal Anti-Aliasing with Spatial Anti-Aliasing
+
+Here in addition to the temporal aliasing as introduced in part 2, spatial aliasing is also introduce. An effort to
+apply anti-aliasing for both is made in this part.   
+
+
+The program takes in the following parameters:
+```
+n   - Number of lines to draw on the otherwise white image.
+      (The lines are arraged like spokes in a wheel with each line seperated by 360/n degrees) 
+s   - Speed of rotation (rotations per second) of original video.
+fps - Frames per second (sampling rate) to render the second video.
+a   - A boolean value (0 or 1) indicating whether to perform anti-aliasing.
+sf  - Scaling factor (between 0 and 1).
+```
+
+#### Demo run for parameters (n=64 , s=4.0, fps=7.0, a=1, s=1.0)
+- [Link]()
+
+#### Demo run for parameters (n=64 , s=4.0, fps=7.0, a=1, s=2.0)
+- [Link]()
