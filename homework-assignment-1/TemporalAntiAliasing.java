@@ -8,7 +8,7 @@ import java.awt.image.*;
 import javax.swing.*;
 
 import static java.lang.System.exit;
-// import static java.lang.System.out;
+import static java.lang.System.out;
 
 /**
  * Main class for the program:
@@ -32,7 +32,6 @@ public class TemporalAntiAliasing {
             RUNNING, STOPPED
         }
         private RenderStatus status;
-        private Thread renderThread;
         private final int n;
         private long startTime;
         private final VideoDisplay vd;
@@ -43,7 +42,7 @@ public class TemporalAntiAliasing {
 
         public void run() {
             status = RenderStatus.RUNNING;
-            renderThread = new Thread(this::processRenderLoop);
+            Thread renderThread = new Thread(this::processRenderLoop);
             renderThread.start();
         }
 
@@ -57,16 +56,18 @@ public class TemporalAntiAliasing {
         }
 
         protected void update() {
-            double initialRotAngle = Math.toRadians(this.rateOfRotation * ((RENDER_RATE / 1000.0d) * this.counter));
+            double offsetAngle = Math.toRadians(this.rateOfRotation * ((RENDER_INTERVAL / 1000.0d) * this.counter));
             // If fps match, sample the current original image and construct display image
             // set the new frame for the videos
             if (this.renderTarget == RenderLoopTarget.LEFT)
-                vd.setOrig(addSpokesToImage(createEmptyImage(), n, initialRotAngle));
+                vd.setOrig(addSpokesToImage(createEmptyImage(), n, offsetAngle));
             else
                 vd.setSampled(this.vd.getOrig());
 
+            // update the counter for next iteration
+            this.counter++;
             // reset the counter when the image returns to the first frame position to prevent overflow of the counter
-            if (initialRotAngle / Math.toRadians(0) == 0.0d)
+            if (offsetAngle / Math.toRadians(0) == 0.0d)
                 this.counter = 0L;
             // update the counter for next iteration
             this.counter++;
@@ -102,6 +103,8 @@ public class TemporalAntiAliasing {
 
             // set the target for this render loop
             this.renderTarget = renderTarget;
+            
+            out.println();
         }
     }
 
@@ -209,7 +212,7 @@ public class TemporalAntiAliasing {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static long RENDER_RATE = 10L; // rate at which to render the images in milliseconds
+    private final static long RENDER_INTERVAL = 10L; // rate at which to render the images in milliseconds
 
     /**
      * Create an empty image with only white pixels of given size
@@ -258,7 +261,7 @@ public class TemporalAntiAliasing {
      * @param n number of lines to be added to the image
      * @return the image with spokes
      */
-    private static BufferedImage addSpokesToImage(BufferedImage img, int n, double initialRotAngle) {
+    private static BufferedImage addSpokesToImage(BufferedImage img, int n, double offsetAngle) {
         // define center (origin) about which to rotate the line endpoints and angle (radians) by which to rotate the lines
         int centerX = img.getWidth() / 2;
         int centerY =  img.getHeight() / 2;
@@ -267,13 +270,13 @@ public class TemporalAntiAliasing {
         // define endpoints for the first line (as determined by the initial rotation on (0, 0))
         int startX = (int)Math.round(
                 centerX +
-                        -centerX * Math.cos(initialRotAngle) -
-                        - centerY * Math.sin(initialRotAngle)
+                        -centerX * Math.cos(offsetAngle) -
+                        - centerY * Math.sin(offsetAngle)
         );
         int startY = (int)Math.round(
                 centerY +
-                        -centerX * Math.sin(initialRotAngle) +
-                        -centerY * Math.cos(initialRotAngle)
+                        -centerX * Math.sin(offsetAngle) +
+                        -centerY * Math.cos(offsetAngle)
         );
 
         // draw the first line with red color to test
@@ -307,7 +310,7 @@ public class TemporalAntiAliasing {
 
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("ERR: Expected three arguments (n, s, fps)");
+            out.println("ERR: Expected three arguments (n, s, fps)");
             // Terminate the program unsuccessfully
             exit(1);
         }
@@ -326,7 +329,7 @@ public class TemporalAntiAliasing {
                 s * 360.0d,
                 vd,
                 RenderLoopTarget.LEFT,
-                RENDER_RATE
+                RENDER_INTERVAL
         )::run;
         Runnable rightRunner = new RenderLoop(
                 n,
