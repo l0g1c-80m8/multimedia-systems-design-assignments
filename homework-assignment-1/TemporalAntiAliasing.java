@@ -1,5 +1,5 @@
 /**
- * This file contains the TemporalAntiAliasing Class for parts 2 and 3 of the assignment
+ * This file contains the TemporalAntiAliasing Class for part 2 of the assignment
  *
  */
 
