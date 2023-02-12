@@ -23,6 +23,9 @@ public class TemporalAntiAliasing {
         LEFT, RIGHT
     }
 
+    /**
+     * Class to control the generation of original video and sampling for the sampled video
+     */
     private static class RenderLoop {
         // references for game loop design pattern:
         // - https://java-design-patterns.com/patterns/game-loop/#explanation
@@ -38,21 +41,35 @@ public class TemporalAntiAliasing {
         private final VideoDisplay vd;
         private final RenderLoopTarget renderTarget;
 
+        /**
+         * Method used to create a runnable instance for the class
+         */
         public void run() {
             status = RenderStatus.RUNNING;
             Thread renderThread = new Thread(this::processRenderLoop);
             renderThread.start();
         }
 
+        /**
+         * Check if the thread is in RUNNING state
+         * @return (thread in RUNNING state?)
+         */
         public boolean isRendering() {
             return status == RenderStatus.RUNNING;
         }
 
+        /**
+         * ask video display handle to update the contents in the frame
+         */
         protected void render() {
             // force an update to the screen
             vd.updateFrames();
         }
 
+        /**
+         * Execute image update
+         * @param offsetAngle angle by which to offset the first angle in the image
+         */
         protected void update(double offsetAngle) {
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
@@ -66,6 +83,9 @@ public class TemporalAntiAliasing {
                  this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
         }
 
+        /**
+         * Runner method for the instance used to instantiate a thread with the render loop
+         */
         protected void processRenderLoop() {
             long timeOfLastUpdate = System.currentTimeMillis();
             long updateInterval;
