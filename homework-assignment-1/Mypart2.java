@@ -7,8 +7,7 @@ import java.awt.*;
 import java.awt.image.*;
 import javax.swing.*;
 
-import static java.lang.System.exit;
-import static java.lang.System.out;
+import static java.lang.System.*;
 
 /**
  * Main class for the program:
@@ -77,30 +76,32 @@ public class Mypart2 {
                 this.vd.setSampled(this.vd.getOrig());
         }
 
+        private double nanoToSeconds(long nanoTime) {
+            return nanoTime / 1e9;
+        }
+
+        private double secondsToNano(double seconds) {
+            return seconds * 1e9;
+        }
+
         /**
          * Runner method for the instance used to instantiate a thread with the render loop
          */
         protected void processRenderLoop() {
-            long updateInterval;
-            if (this.renderTarget == RenderLoopTarget.LEFT) {
-                updateInterval = LOOP_DELAY;
-            } else {
-                updateInterval = (long)(1000.0 / this.fps);
-            }
-
-            long currentTime = System.currentTimeMillis();
+            long updateInterval = LOOP_DELAY;
+            if (this.renderTarget == RenderLoopTarget.RIGHT)
+                updateInterval = (long)(secondsToNano(1.0d / this.fps));
+            long previousTime = nanoTime();
             long errorAcc = 0L;
             long totalTime = 0L;
 
             while (isRendering()) {
-                long newTime = System.currentTimeMillis();
-                long frameTime = newTime - currentTime;
-                currentTime = newTime;
-
+                long currentTime = nanoTime();
+                long frameTime = currentTime - previousTime;
+                previousTime = currentTime;
                 errorAcc += frameTime;
-
                 while (errorAcc >= updateInterval) {
-                    update(2 * Math.PI * this.s * totalTime / 1000.0d);
+                    update(2 * Math.PI * this.s * nanoToSeconds(totalTime));
                     render();
                     errorAcc -= updateInterval;
                     totalTime += updateInterval;
@@ -235,7 +236,7 @@ public class Mypart2 {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static long LOOP_DELAY = 20L; // time before successive renders
+    private final static long LOOP_DELAY = 20000000L; // time before successive renders in ms (20 ns expressed as 2e7ms)
 
     /**
      * Create an empty image with only white pixels of given size
