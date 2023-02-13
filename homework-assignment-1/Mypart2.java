@@ -76,7 +76,7 @@ public class Mypart2 {
                 this.vd.setSampled(this.vd.getOrig());
         }
 
-        private double nanoToSeconds(long nanoTime) {
+        private double nanoToSeconds(double nanoTime) {
             return nanoTime / 1e9;
         }
 
@@ -88,12 +88,13 @@ public class Mypart2 {
          * Runner method for the instance used to instantiate a thread with the render loop
          */
         protected void processRenderLoop() {
-            long updateInterval = LOOP_DELAY;
+            double updateInterval = LOOP_DELAY;
             if (this.renderTarget == RenderLoopTarget.RIGHT)
-                updateInterval = (long)(secondsToNano(1.0d / this.fps));
+                updateInterval = secondsToNano(1.0d / this.fps);
             long previousTime = nanoTime();
-            long errorAcc = 0L;
-            long totalTime = 0L;
+            double errorAcc = 0.0d;
+            double totalTime = 0.0d;
+            out.println(updateInterval);
 
             while (isRendering()) {
                 long currentTime = nanoTime();
@@ -236,7 +237,7 @@ public class Mypart2 {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static long LOOP_DELAY = 20000000L; // time before successive renders in ms (20 ns expressed as 2e7ms)
+    private final static double LOOP_DELAY = 1e7; // time before successive renders in ms (20 ns expressed as 2e7ms)
 
     /**
      * Create an empty image with only white pixels of given size
