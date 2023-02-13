@@ -97,16 +97,6 @@ public class Mypart2 {
             while (isRendering()) {
                 long elapsedTime = System.currentTimeMillis() - timeOfLastUpdate;
                 if (elapsedTime >= updateInterval) {
-                    /*
-                    * Hack:
-                    * Every update-render step needs about 4ms of time to create an image, update it and render it
-                    * on the screen. If timeOfLastUpdate is set after rendering, then the ~4ms of rendering time is lost
-                    * and the frames are updated at a slower rate than they should be. Instead, set last update as soon
-                    * as a new frame is to be displayed. This causes the delay to overlap with the render, triggering
-                    * the next update-render step on time.
-                    * Set LOOP_DELAY to a small but sufficiently large value so that the renders on screen appear timely
-                    * [20, 30] ms looks like a good value for most systems (m1 pro, m1, i7-7700HQ).
-                    * */
                     timeOfLastUpdate = System.currentTimeMillis();
                     update(Math.toRadians(ticksInCurrentRotation * changeInAnglePerTick));
                     render();
