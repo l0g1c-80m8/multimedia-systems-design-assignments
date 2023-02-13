@@ -98,7 +98,6 @@ public class Mypart2 {
             while (isRendering()) {
                 long currentTime = nanoTime();
                 long frameTime = currentTime - previousTime;
-                previousTime = currentTime;
                 errorAcc += frameTime;
                 while (errorAcc >= updateInterval) {
                     update(2 * Math.PI * this.s * nanoToSeconds(totalTime));
@@ -106,6 +105,7 @@ public class Mypart2 {
                     errorAcc -= updateInterval;
                     totalTime += updateInterval;
                 }
+                previousTime = currentTime;
             }
         }
 
@@ -236,7 +236,7 @@ public class Mypart2 {
 
     private final static int ORIG_IMG_WIDTH = 512; // number of pixes in each row of the image
     private final static int ORIG_IMG_HEIGHT = 512; // number of rows in each image
-    private final static double LOOP_DELAY = 1e7; // time before successive renders in ms (20 ns expressed as 2e7ms)
+    private final static double LOOP_DELAY = 1e7; // time before successive renders in ms (10 ns expressed as 1e7ms)
 
     /**
      * Create an empty image with only white pixels of given size
