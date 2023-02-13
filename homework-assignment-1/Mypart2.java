@@ -74,13 +74,7 @@ public class Mypart2 {
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
             else
-                /*
-                * Set the image to the newly generated image as sampling for larger images is delayed because of
-                * updates to the original image. As the render loops are independent, they are not synchronized
-                * and thus each sample frame obtained from the original video is a frame in a future time-step
-                * */
-//                this.vd.setSampled(this.vd.getOrig());
-                 this.vd.setSampled(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+                this.vd.setSampled(this.vd.getOrig());
         }
 
         /**
