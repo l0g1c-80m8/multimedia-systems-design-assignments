@@ -70,12 +70,11 @@ public class Mypart2 {
          * @param offsetAngle angle by which to offset the first angle in the image
          */
         protected void update(double offsetAngle) {
-            if (this.renderTarget == RenderLoopTarget.LEFT)
-                this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
-            else {
-                this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+            // always update the original video frame
+            this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+            // only update the render video frame when it is to be sampled
+            if (this.renderTarget == RenderLoopTarget.RIGHT)
                 this.vd.setSampled(this.vd.getOrig());
-            }
         }
 
         private double nanoToSeconds(double nanoTime) {
@@ -106,7 +105,6 @@ public class Mypart2 {
                     render();
                     errorAcc -= updateInterval;
                     totalTime += updateInterval;
-                    out.println(renderTarget + "  " + Math.toDegrees((2 * Math.PI * this.s * nanoToSeconds(totalTime)) % (2 * Math.PI)));
                 }
                 previousTime = currentTime;
             }
