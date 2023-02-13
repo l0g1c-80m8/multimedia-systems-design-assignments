@@ -1,6 +1,5 @@
 /**
- * This file contains the TemporalAntiAliasing Class for part 3 of the assignment
- *
+ * This file contains the TemporalAntiAliasing Class for part 3 of the assignment*
  * Here part 1 is combined with part 2 of the assignment along with temporal anti-aliasing
  *
  */
@@ -157,12 +156,11 @@ public class MyExtraCredit {
      * Nested class to render the videos to the swing frame side-by-side
      */
     private static class VideoDisplay {
-
-        private BufferedImage orig;
         private BufferedImage sampled;
         private JFrame frame;
         private JLabel lbIm1;
         private JLabel lbIm2;
+        private final BufferedImage[] frameBuffer;
 
         /**
          * Constructor for the inner class to hold the images (frames) to be rendered at the moment for the video
@@ -170,7 +168,10 @@ public class MyExtraCredit {
          * @param sampled Starting frame for the sampled video
          */
         private VideoDisplay(BufferedImage orig, BufferedImage sampled) {
-            this.orig = orig;
+            this.frameBuffer = new BufferedImage[3];
+            this.frameBuffer[0] = orig;
+            this.frameBuffer[1] = null;
+            this.frameBuffer[2] = null;
             this.sampled = sampled;
             initializeFrame();
         }
@@ -188,7 +189,7 @@ public class MyExtraCredit {
             lbText1.setHorizontalAlignment(SwingConstants.CENTER);
             lbText2.setHorizontalAlignment(SwingConstants.CENTER);
 
-            lbIm1 = new JLabel(new ImageIcon(orig));
+            lbIm1 = new JLabel(new ImageIcon(frameBuffer[0]));
             lbIm2 = new JLabel(new ImageIcon(sampled));
 
             GridBagConstraints c = new GridBagConstraints();
@@ -227,14 +228,16 @@ public class MyExtraCredit {
          * @param orig new frame for the left video
          */
         public void setOrig(BufferedImage orig) {
-            this.orig = orig;
+            frameBuffer[2] = frameBuffer[1];
+            frameBuffer[1] = frameBuffer[0];
+            frameBuffer[0] = orig;
         }
 
         /**
          * Getter for the orig member identifier
          */
         public BufferedImage getOrig() {
-            return this.orig;
+            return this.frameBuffer[0];
         }
 
         /**
@@ -250,7 +253,7 @@ public class MyExtraCredit {
          */
         public void updateFrames(RenderLoopTarget renderLoopTarget) {
             if (renderLoopTarget == RenderLoopTarget.LEFT)
-                lbIm1.setIcon(new ImageIcon(this.orig));
+                lbIm1.setIcon(new ImageIcon(this.frameBuffer[0]));
             else lbIm2.setIcon(new ImageIcon(this.sampled));
             frame.repaint();
         }
@@ -265,7 +268,7 @@ public class MyExtraCredit {
      * @return the newly created white image
      */
     private static BufferedImage createEmptyImage(int height, int width) {
-        BufferedImage img = new BufferedImage(height, width, BufferedImage.TYPE_INT_RGB);
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
