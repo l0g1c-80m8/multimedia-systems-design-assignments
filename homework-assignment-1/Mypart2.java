@@ -81,7 +81,6 @@ public class Mypart2 {
          * Runner method for the instance used to instantiate a thread with the render loop
          */
         protected void processRenderLoop() {
-            long timeOfLastUpdate = System.currentTimeMillis();
             long updateInterval;
             if (this.renderTarget == RenderLoopTarget.LEFT) {
                 updateInterval = LOOP_DELAY;
@@ -89,20 +88,22 @@ public class Mypart2 {
                 updateInterval = (long)(1000.0 / this.fps);
             }
 
-            long ticksPerSecond = (long)(1000.0d / updateInterval);
-            double changeInAnglePerTick = (this.s * 360.0d) / ticksPerSecond;
-            double numberOfTicksPerRotation = 360.0d / (changeInAnglePerTick % 360.0d);
-            long ticksInCurrentRotation = 0L;
+            long currentTime = System.currentTimeMillis();
+            long errorAcc = 0L;
+            long totalTime = 0L;
 
             while (isRendering()) {
-                long elapsedTime = System.currentTimeMillis() - timeOfLastUpdate;
-                if (elapsedTime >= updateInterval) {
-                    timeOfLastUpdate = System.currentTimeMillis();
-                    update(Math.toRadians(ticksInCurrentRotation * changeInAnglePerTick));
+                long newTime = System.currentTimeMillis();
+                long frameTime = newTime - currentTime;
+                currentTime = newTime;
+
+                errorAcc += frameTime;
+
+                while (errorAcc >= updateInterval) {
+                    update(2 * Math.PI * this.s * totalTime / 1000.0d);
                     render();
-                    ticksInCurrentRotation++;
-                    if (ticksInCurrentRotation >= numberOfTicksPerRotation)
-                        ticksInCurrentRotation = 0;
+                    errorAcc -= updateInterval;
+                    totalTime += updateInterval;
                 }
             }
         }
@@ -305,7 +306,7 @@ public class Mypart2 {
         drawLine(img, startX, startY, centerX, centerY, Color.RED);
 
         // calculate the rotation angle between the spokes
-        double rotAngle = Math.toRadians((double)360 / n);
+        double rotAngle = 2 * Math.PI / n;
 
         // draw n lines starting with a line across the primary diagonal
         for (int i = 1; i < n; i++) {
