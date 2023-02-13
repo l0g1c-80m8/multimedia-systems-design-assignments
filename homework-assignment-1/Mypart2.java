@@ -72,8 +72,10 @@ public class Mypart2 {
         protected void update(double offsetAngle) {
             if (this.renderTarget == RenderLoopTarget.LEFT)
                 this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
-            else
+            else {
+                this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
                 this.vd.setSampled(this.vd.getOrig());
+            }
         }
 
         private double nanoToSeconds(double nanoTime) {
@@ -100,10 +102,11 @@ public class Mypart2 {
                 long frameTime = currentTime - previousTime;
                 errorAcc += frameTime;
                 while (errorAcc >= updateInterval) {
-                    update(2 * Math.PI * this.s * nanoToSeconds(totalTime));
+                    update((2 * Math.PI * this.s * nanoToSeconds(totalTime)) % (2 * Math.PI));
                     render();
                     errorAcc -= updateInterval;
                     totalTime += updateInterval;
+                    out.println(renderTarget + "  " + Math.toDegrees((2 * Math.PI * this.s * nanoToSeconds(totalTime)) % (2 * Math.PI)));
                 }
                 previousTime = currentTime;
             }
