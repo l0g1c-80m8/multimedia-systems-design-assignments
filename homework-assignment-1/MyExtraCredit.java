@@ -39,6 +39,8 @@ public class MyExtraCredit {
         private final int n;
         private final double s;
         private final double fps;
+        private final int a;
+        private final double sf;
         private final VideoDisplay vd;
         private final RenderLoopTarget renderTarget;
 
@@ -73,10 +75,20 @@ public class MyExtraCredit {
          */
         protected void update(double offsetAngle) {
             // always update the original video frame
-            this.vd.setOrig(addSpokesToImage(createEmptyImage(), this.n, offsetAngle));
+            this.vd.setOrig(addSpokesToImage(createEmptyImage(ORIG_IMG_HEIGHT, ORIG_IMG_WIDTH), this.n, offsetAngle));
             // only update the render video frame when it is to be sampled
             if (this.renderTarget == RenderLoopTarget.RIGHT)
-                this.vd.setSampled(this.vd.getOrig());
+                this.vd.setSampled(
+                        sampleImage(
+                                this.vd.getOrig(),
+                                createEmptyImage(
+                                        (int)(ORIG_IMG_HEIGHT * sf),
+                                        (int)(ORIG_IMG_WIDTH * sf)
+                                ),
+                                this.sf,
+                                this.a
+                        )
+                );
         }
 
         private double nanoToSeconds(double nanoTime) {
@@ -117,6 +129,8 @@ public class MyExtraCredit {
          * @param n the number of lines for each frame of the video
          * @param s number of rotations/revolutions per second for original video
          * @param fps sampling rate for the sampled video
+         * @param a apply anti-aliasing or not
+         * @param sf scale factor of the sampled video
          * @param vd VideoDisplay instance to apply updates and render
          * @param renderTarget the target for the render loop (original/sampled)
          */
@@ -124,6 +138,8 @@ public class MyExtraCredit {
                 int n,
                 double s,
                 double fps,
+                int a,
+                double sf,
                 VideoDisplay vd,
                 RenderLoopTarget renderTarget
         ) {
@@ -131,6 +147,8 @@ public class MyExtraCredit {
             this.n = n;
             this.s = s;
             this.fps = fps;
+            this.a = a;
+            this.sf = sf;
             this.renderTarget = renderTarget;
         }
     }
@@ -246,11 +264,11 @@ public class MyExtraCredit {
      * Create an empty image with only white pixels of given size
      * @return the newly created white image
      */
-    private static BufferedImage createEmptyImage() {
-        BufferedImage img = new BufferedImage(ORIG_IMG_WIDTH, ORIG_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    private static BufferedImage createEmptyImage(int height, int width) {
+        BufferedImage img = new BufferedImage(height, width, BufferedImage.TYPE_INT_RGB);
 
-        for(int y = 0; y < ORIG_IMG_HEIGHT; y++) {
-            for(int x = 0; x < MyExtraCredit.ORIG_IMG_WIDTH; x++) {
+        for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
                 // byte a = (byte) 255;
                 byte r = (byte) 255;
                 byte g = (byte) 255;
@@ -336,6 +354,63 @@ public class MyExtraCredit {
         return img;
     }
 
+    /**
+     * Perform the sampling on original image to fill in values in the new image
+     * @param orig original image used to sample
+     * @param sampled sampled image generated as a result of sampling
+     * @param scaleFactor the factor by which the image is scaled down
+     * @param antiAliasing boolean parameter to determine is anti-aliasing is to be performed or not
+     */
+    private static BufferedImage sampleImage(BufferedImage orig, BufferedImage sampled, double scaleFactor, int antiAliasing) {
+        for (int x = 0; x < sampled.getWidth(); x++) {
+            for (int y = 0; y < sampled.getHeight(); y++) {
+                int pix; // pixel is black by default
+                if (antiAliasing == 1) {
+                    // explore a 3x3 neighborhood to compute average as the sampled pixel value
+                    int scaledX = (int)(x / scaleFactor);
+                    int scaledY = (int)(y / scaleFactor);
+                    int samplesExplored = 0;
+
+                    // variables to store averages for individual channels
+                    int r = 0x00;
+                    int g = 0x00;
+                    int b = 0x00;
+
+                    for (int deltaX = -1; deltaX < 2; deltaX++) {
+                        for (int deltaY = -1; deltaY < 2; deltaY++) {
+                            int origSampleX = scaledX + deltaX;
+                            int origSampleY = scaledY + deltaY;
+
+                            if (origSampleX < 0 ||
+                                    origSampleX >= orig.getWidth() ||
+                                    origSampleY < 0 ||
+                                    origSampleY >= orig.getHeight()
+                            )
+                                continue;
+
+                            int samplePix = orig.getRGB(origSampleX, origSampleY);
+                            // here int size is assumed to be 4 bytes
+                            r += (samplePix >> 16 & 0x00ff);
+                            g += (samplePix >> 8 & 0x0000ff);
+                            b += (samplePix & 0x000000ff);
+                            samplesExplored += 1;
+                        }
+                    }
+
+                    byte rByte = (byte)(Math.min(255, r / samplesExplored));
+                    byte gByte = (byte)(Math.min(255, g / samplesExplored));
+                    byte bByte = (byte)(Math.min(255, b / samplesExplored));
+                    pix = 0xff000000 | ((rByte & 0xff) << 16) | ((gByte & 0xff) << 8) | (bByte & 0xff);
+
+                } else {
+                    pix = orig.getRGB((int)(x / scaleFactor), (int)(y / scaleFactor));
+                }
+                sampled.setRGB(x, y, pix);
+            }
+        }
+        return sampled;
+    }
+
     public static void main(String[] args) {
         if (args.length < 5) {
             out.println("ERR: Expected three arguments (n, s, fps, a, sf)");
@@ -347,15 +422,18 @@ public class MyExtraCredit {
         int n = Integer.parseInt(args[0]);
         double s = Double.parseDouble(args[1]);
         double fps = Double.parseDouble(args[2]);
-        boolean a = Boolean.parseBoolean(args[3]);
+        int a = Integer.parseInt(args[3]);
         double sf = Double.parseDouble(args[4]);
 
         // create an object for video display class
-        VideoDisplay vd = new VideoDisplay(createEmptyImage(), createEmptyImage());
+        VideoDisplay vd = new VideoDisplay(
+                createEmptyImage(ORIG_IMG_HEIGHT, ORIG_IMG_WIDTH),
+                createEmptyImage((int)(ORIG_IMG_HEIGHT * sf), (int)(ORIG_IMG_WIDTH * sf))
+        );
 
         // create and run the render loops
-        Runnable leftRunner = new RenderLoop(n, s, fps, vd, RenderLoopTarget.LEFT)::run;
-        Runnable rightRunner = new RenderLoop(n, s, fps, vd, RenderLoopTarget.RIGHT)::run;
+        Runnable leftRunner = new RenderLoop(n, s, fps, a, sf, vd, RenderLoopTarget.LEFT)::run;
+        Runnable rightRunner = new RenderLoop(n, s, fps, a, sf, vd, RenderLoopTarget.RIGHT)::run;
         leftRunner.run();
         rightRunner.run();
     }
