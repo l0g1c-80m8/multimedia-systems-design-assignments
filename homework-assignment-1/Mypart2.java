@@ -62,7 +62,7 @@ public class Mypart2 {
          */
         protected void render() {
             // force an update to the screen
-            vd.updateFrames();
+            vd.updateFrames(this.renderTarget);
         }
 
         /**
@@ -227,9 +227,10 @@ public class Mypart2 {
         /**
          * Update the frames displayed in the frames object
          */
-        public void updateFrames() {
-            lbIm1.setIcon(new ImageIcon(this.orig));
-            lbIm2.setIcon(new ImageIcon(this.sampled));
+        public void updateFrames(RenderLoopTarget renderLoopTarget) {
+            if (renderLoopTarget == RenderLoopTarget.LEFT)
+                lbIm1.setIcon(new ImageIcon(this.orig));
+            else lbIm2.setIcon(new ImageIcon(this.sampled));
             frame.repaint();
         }
     }
