@@ -94,7 +94,6 @@ public class Mypart2 {
             long previousTime = nanoTime();
             double errorAcc = 0.0d;
             double totalTime = 0.0d;
-            out.println(updateInterval);
 
             while (isRendering()) {
                 long currentTime = nanoTime();
