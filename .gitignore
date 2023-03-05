@@ -4,3 +4,6 @@
 # Build files
 **/**.class
 **/out/
+
+# System files
+**/.DS_Store
