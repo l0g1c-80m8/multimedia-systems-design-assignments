@@ -4,6 +4,8 @@
  */
 
 // swing imports
+import javafx.util.Pair;
+
 import java.awt.*;
 import java.awt.image.*;
 import javax.swing.*;
@@ -13,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+
 import static java.lang.System.exit;
 // import static java.lang.System.out;
 
@@ -58,7 +62,7 @@ class SingleChannelImageParser {
     private final String imagePath;
     private final int resHeight;
     private final int resWidth;
-    private byte[] pixels;
+    private int[] pixels;
 
     SingleChannelImageParser(String imagePath, int resHeight, int resWidth) {
         this.imagePath = imagePath;
@@ -70,7 +74,12 @@ class SingleChannelImageParser {
     void parseImage() {
         Path path = Paths.get(imagePath);
         try {
-            pixels =  Files.readAllBytes(path);
+            byte[] bytePixels =  Files.readAllBytes(path);
+            pixels = new int[bytePixels.length];
+
+            for (int i = 0; i < bytePixels.length; i++) {
+                pixels[i] = 0xff000000 | ((bytePixels[i] & 0xff)) | ((bytePixels[i] & 0xff) << 8) | (bytePixels[i] & 0xff);
+            }
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -80,9 +89,7 @@ class SingleChannelImageParser {
     BufferedImage getParsedImageAsGray() {
         BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
         for (int i = 0; i < pixels.length; i++) {
-            int intensity = pixels[i];
-            int pixel = 0xff000000 | ((intensity & 0xff)) | ((intensity & 0xff) << 8) | (intensity & 0xff);
-            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), pixel);
+            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), pixels[i]);
         }
         return image;
     }
