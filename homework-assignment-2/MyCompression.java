@@ -58,48 +58,34 @@ class SingleChannelImageParser {
     private final String imagePath;
     private final int resHeight;
     private final int resWidth;
-    private BufferedImage image;
+    private byte[] pixels;
 
     SingleChannelImageParser(String imagePath, int resHeight, int resWidth) {
         this.imagePath = imagePath;
         this.resHeight = resHeight;
         this.resWidth = resWidth;
-        initImage();
-    }
-
-    void initImage() {
-        image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_INT_RGB);
-        for(int y = 0; y < resHeight; y++) {
-            for(int x = 0; x < resWidth; x++) {
-                // byte a = (byte) 255;
-                byte r = (byte) 255;
-                byte g = (byte) 255;
-                byte b = (byte) 255;
-
-                // set all channels to 1 for white image
-                int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-                image.setRGB(x, y, pix);
-            }
-        }
+        parseImage();
     }
 
     void parseImage() {
         Path path = Paths.get(imagePath);
         try {
-            byte[] fileContents =  Files.readAllBytes(path);
-
-            for (int i = 0; i < fileContents.length; i++) {
-                int intensity = fileContents[i];
-                int pixel = 0xff000000 | ((intensity & 0xff)) | ((intensity & 0xff) << 8) | (intensity & 0xff);
-                image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), pixel);
-            }
+            pixels =  Files.readAllBytes(path);
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    BufferedImage getParsedImage() { return image; }
+    BufferedImage getParsedImageAsGray() {
+        BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
+        for (int i = 0; i < pixels.length; i++) {
+            int intensity = pixels[i];
+            int pixel = 0xff000000 | ((intensity & 0xff)) | ((intensity & 0xff) << 8) | (intensity & 0xff);
+            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), pixel);
+        }
+        return image;
+    }
 }
 
 
@@ -128,7 +114,7 @@ public class MyCompression {
 
         SingleChannelImageParser scip = new SingleChannelImageParser(srcImgPath, RES_HEIGHT, RES_WIDTH);
         scip.parseImage();
-        BufferedImage parsedImg = scip.getParsedImage();
+        BufferedImage parsedImg = scip.getParsedImageAsGray();
         ImageDisplay id = new ImageDisplay(parsedImg);
         id.showImg();
     }
