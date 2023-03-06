@@ -107,9 +107,9 @@ class Quantize {
         double getDist(Pair<Integer, Integer> vec1, Pair<Integer, Integer> vec2);
     }
 
-    private static final EuclideanDist distInst = (vec1, vec2) -> Math.pow(
-            Math.pow(vec1.getKey() - vec2.getKey(), 2)
-                    + Math.pow(vec1.getValue() - vec2.getValue(), 2)
+    private static final EuclideanDist distInst = ($1, $2) -> Math.pow(
+            Math.pow($1.getKey() - $2.getKey(), 2)
+                    + Math.pow($1.getValue() - $2.getValue(), 2)
             , 0.5);
 
     Quantize(ArrayList<Pair<Integer, Integer>> imgVectors, int n) {
