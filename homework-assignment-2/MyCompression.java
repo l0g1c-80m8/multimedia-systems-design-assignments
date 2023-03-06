@@ -12,11 +12,12 @@ import javax.swing.*;
 
 // other imports
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
 // import static java.lang.System.out;
@@ -120,6 +121,7 @@ class Quantize {
     private int getNearestCodeVecIndex(Pair<Integer, Integer> vec, ArrayList<Pair<Integer, Integer>> codebookVectors) {
         return codebookVectors
                 .stream()
+                .parallel()
                 .reduce(
                         ($1, $2) ->
                                 distInst.getDist(vec, $1) < distInst.getDist(vec, $2)
@@ -141,11 +143,18 @@ class Quantize {
 
         // assign each vector to the nearest codebook vector
         // based on assignment, update the codebook vectors
+        HashMap<Integer, ArrayList<Pair<Integer, Integer>>> codebookClusters = new HashMap<>(codebookVectors.size());
 
         for (Pair<Integer, Integer> vec : imgVectors) {
             int idx = getNearestCodeVecIndex(vec, codebookVectors);
-            System.out.println(idx);
+            if (codebookClusters.containsKey(idx)) {
+                codebookClusters.get(idx).add(vec);
+            } else {
+                codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
+            }
         }
+
+        System.out.println(codebookClusters);
     }
 }
 
