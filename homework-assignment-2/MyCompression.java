@@ -103,12 +103,34 @@ class Quantize {
     private final ArrayList<Pair<Integer, Integer>> imgVectors;
     private final int n;
 
+    interface EuclideanDist {
+        double getDist(Pair<Integer, Integer> vec1, Pair<Integer, Integer> vec2);
+    }
+
+    private static final EuclideanDist distInst = (vec1, vec2) -> Math.pow(
+            Math.pow(vec1.getKey() - vec2.getKey(), 2)
+                    + Math.pow(vec1.getValue() - vec2.getValue(), 2)
+            , 0.5);
+
     Quantize(ArrayList<Pair<Integer, Integer>> imgVectors, int n) {
         this.imgVectors = imgVectors;
         this.n = n;
     }
 
+    private int getNearestCodeVecIndex(Pair<Integer, Integer> vec, ArrayList<Pair<Integer, Integer>> codebookVectors) {
+        return codebookVectors
+                .stream()
+                .reduce(
+                        ($1, $2) ->
+                                distInst.getDist(vec, $1) < distInst.getDist(vec, $2)
+                                        ? $1 : $2
+                )
+                .map(codebookVectors::indexOf)
+                .orElse(-1);
+    }
+
     public void quantize() {
+        // initialize the initial codebook vectors as random vectors from the vectors in the image
         ArrayList<Pair<Integer, Integer>> codebookVectors = new ArrayList<>(n);
         Random prng = new Random();
         for (int i = 0; i < n; i++) {
@@ -116,7 +138,14 @@ class Quantize {
             Pair<Integer, Integer> vec = imgVectors.get(idx);
             codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
         }
-        System.out.println(codebookVectors.size());
+
+        // assign each vector to the nearest codebook vector
+        // based on assignment, update the codebook vectors
+
+        for (Pair<Integer, Integer> vec : imgVectors) {
+            int idx = getNearestCodeVecIndex(vec, codebookVectors);
+            System.out.println(idx);
+        }
     }
 }
 
