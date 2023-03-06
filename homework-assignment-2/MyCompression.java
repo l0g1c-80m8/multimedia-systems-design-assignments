@@ -62,7 +62,7 @@ class SingleChannelImageParser {
     private final String imagePath;
     private final int resHeight;
     private final int resWidth;
-    private int[] pixels;
+    private byte[] pixels;
 
     SingleChannelImageParser(String imagePath, int resHeight, int resWidth) {
         this.imagePath = imagePath;
@@ -74,13 +74,7 @@ class SingleChannelImageParser {
     void parseImage() {
         Path path = Paths.get(imagePath);
         try {
-            byte[] bytePixels =  Files.readAllBytes(path);
-            pixels = new int[bytePixels.length];
-
-            for (int i = 0; i < bytePixels.length; i++) {
-                pixels[i] = 0xff000000 | ((bytePixels[i] & 0xff)) | ((bytePixels[i] & 0xff) << 8) | (bytePixels[i] & 0xff);
-            }
-
+            pixels =  Files.readAllBytes(path);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -89,13 +83,14 @@ class SingleChannelImageParser {
     BufferedImage getParsedImageAsGray() {
         BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
         for (int i = 0; i < pixels.length; i++) {
-            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), pixels[i]);
+            int intensity = 0xff000000 | ((pixels[i] & 0xff)) | ((pixels[i] & 0xff) << 8) | (pixels[i] & 0xff);
+            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), intensity);
         }
         return image;
     }
 
-    ArrayList<Pair<Integer, Integer>> getParsedImageInR2() {
-        ArrayList<Pair<Integer, Integer>> imgVectors = new ArrayList<>();
+    ArrayList<Pair<Byte, Byte>> getParsedImageInR2() {
+        ArrayList<Pair<Byte, Byte>> imgVectors = new ArrayList<>();
         for (int i = 0; i < pixels.length; i += 2) {
             imgVectors.add(new Pair<>(pixels[i], pixels[i + 1]));
         }
@@ -132,9 +127,9 @@ public class MyCompression {
         BufferedImage parsedImg = scip.getParsedImageAsGray();
         ImageDisplay id = new ImageDisplay(parsedImg);
         id.showImg();
-        ArrayList<Pair<Integer, Integer>> list = scip.getParsedImageInR2();
-        for (Pair<Integer, Integer> vect : list) {
-            System.out.println(vect);
+        ArrayList<Pair<Byte, Byte>> list = scip.getParsedImageInR2();
+        for (Pair<Byte, Byte> vect : list) {
+            System.out.println(vect.getValue());
         }
     }
 }
