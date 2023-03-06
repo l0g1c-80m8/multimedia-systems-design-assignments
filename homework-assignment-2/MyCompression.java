@@ -89,10 +89,10 @@ class SingleChannelImageParser {
         return image;
     }
 
-    ArrayList<Pair<Byte, Byte>> getParsedImageInR2() {
-        ArrayList<Pair<Byte, Byte>> imgVectors = new ArrayList<>();
+    ArrayList<Pair<Integer, Integer>> getParsedImageInR2() {
+        ArrayList<Pair<Integer, Integer>> imgVectors = new ArrayList<>();
         for (int i = 0; i < pixels.length; i += 2) {
-            imgVectors.add(new Pair<>(pixels[i], pixels[i + 1]));
+            imgVectors.add(new Pair<>(0x000000ff & pixels[i], 0x000000ff & pixels[i + 1]));
         }
         return imgVectors;
     }
@@ -127,8 +127,8 @@ public class MyCompression {
         BufferedImage parsedImg = scip.getParsedImageAsGray();
         ImageDisplay id = new ImageDisplay(parsedImg);
         id.showImg();
-        ArrayList<Pair<Byte, Byte>> list = scip.getParsedImageInR2();
-        for (Pair<Byte, Byte> vect : list) {
+        ArrayList<Pair<Integer, Integer>> list = scip.getParsedImageInR2();
+        for (Pair<Integer, Integer> vect : list) {
             System.out.println(vect.getValue());
         }
     }
