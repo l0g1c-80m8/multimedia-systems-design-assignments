@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static java.lang.System.exit;
 // import static java.lang.System.out;
@@ -98,6 +99,27 @@ class SingleChannelImageParser {
     }
 }
 
+class Quantize {
+    private final ArrayList<Pair<Integer, Integer>> imgVectors;
+    private final int n;
+
+    Quantize(ArrayList<Pair<Integer, Integer>> imgVectors, int n) {
+        this.imgVectors = imgVectors;
+        this.n = n;
+    }
+
+    public void quantize() {
+        ArrayList<Pair<Integer, Integer>> codebookVectors = new ArrayList<>(n);
+        Random prng = new Random();
+        for (int i = 0; i < n; i++) {
+            int idx = prng.nextInt(imgVectors.size());
+            Pair<Integer, Integer> vec = imgVectors.get(idx);
+            codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
+        }
+        System.out.println(codebookVectors.size());
+    }
+}
+
 
 /**
  * Main class for the program:
@@ -127,9 +149,7 @@ public class MyCompression {
         BufferedImage parsedImg = scip.getParsedImageAsGray();
         ImageDisplay id = new ImageDisplay(parsedImg);
         id.showImg();
-        ArrayList<Pair<Integer, Integer>> list = scip.getParsedImageInR2();
-        for (Pair<Integer, Integer> vect : list) {
-            System.out.println(vect.getValue());
-        }
+        Quantize q = new Quantize(scip.getParsedImageInR2(), n);
+        q.quantize();
     }
 }
