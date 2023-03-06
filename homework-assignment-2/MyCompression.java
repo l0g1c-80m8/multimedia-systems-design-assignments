@@ -12,12 +12,10 @@ import javax.swing.*;
 
 // other imports
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
 // import static java.lang.System.out;
@@ -163,8 +161,9 @@ class Quantize {
                             )
                     .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
                     .orElse(new Pair<>(0.0f, 0.0f));
-            System.out.println(centroid);
+            codebookVectors.set(entry.getKey(), centroid);
         }
+        System.out.println(codebookVectors);
     }
 }
 
