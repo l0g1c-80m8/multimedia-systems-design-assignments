@@ -91,21 +91,21 @@ class SingleChannelImageParser {
         return image;
     }
 
-    ArrayList<Pair<Integer, Integer>> getParsedImageInR2() {
-        ArrayList<Pair<Integer, Integer>> imgVectors = new ArrayList<>();
+    ArrayList<Pair<Float, Float>> getParsedImageInR2() {
+        ArrayList<Pair<Float, Float>> imgVectors = new ArrayList<>();
         for (int i = 0; i < pixels.length; i += 2) {
-            imgVectors.add(new Pair<>(0x000000ff & pixels[i], 0x000000ff & pixels[i + 1]));
+            imgVectors.add(new Pair<>((float) (0x000000ff & pixels[i]), (float) (0x000000ff & pixels[i + 1])));
         }
         return imgVectors;
     }
 }
 
 class Quantize {
-    private final ArrayList<Pair<Integer, Integer>> imgVectors;
+    private final ArrayList<Pair<Float, Float>> imgVectors;
     private final int n;
 
     interface EuclideanDist {
-        double getDist(Pair<Integer, Integer> vec1, Pair<Integer, Integer> vec2);
+        double getDist(Pair<Float, Float> vec1, Pair<Float, Float> vec2);
     }
 
     private static final EuclideanDist distInst = ($1, $2) -> Math.pow(
@@ -113,12 +113,12 @@ class Quantize {
                     + Math.pow($1.getValue() - $2.getValue(), 2)
             , 0.5);
 
-    Quantize(ArrayList<Pair<Integer, Integer>> imgVectors, int n) {
+    Quantize(ArrayList<Pair<Float, Float>> imgVectors, int n) {
         this.imgVectors = imgVectors;
         this.n = n;
     }
 
-    private int getNearestCodeVecIndex(Pair<Integer, Integer> vec, ArrayList<Pair<Integer, Integer>> codebookVectors) {
+    private int getNearestCodeVecIndex(Pair<Float, Float> vec, ArrayList<Pair<Float, Float>> codebookVectors) {
         return codebookVectors
                 .stream()
                 .parallel()
@@ -133,19 +133,18 @@ class Quantize {
 
     public void quantize() {
         // initialize the initial codebook vectors as random vectors from the vectors in the image
-        ArrayList<Pair<Integer, Integer>> codebookVectors = new ArrayList<>(n);
+        ArrayList<Pair<Float, Float>> codebookVectors = new ArrayList<>(n);
         Random prng = new Random();
         for (int i = 0; i < n; i++) {
             int idx = prng.nextInt(imgVectors.size());
-            Pair<Integer, Integer> vec = imgVectors.get(idx);
+            Pair<Float, Float> vec = imgVectors.get(idx);
             codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
         }
 
         // assign each vector to the nearest codebook vector
-        // based on assignment, update the codebook vectors
-        HashMap<Integer, ArrayList<Pair<Integer, Integer>>> codebookClusters = new HashMap<>(codebookVectors.size());
+        HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
 
-        for (Pair<Integer, Integer> vec : imgVectors) {
+        for (Pair<Float, Float> vec : imgVectors) {
             int idx = getNearestCodeVecIndex(vec, codebookVectors);
             if (codebookClusters.containsKey(idx)) {
                 codebookClusters.get(idx).add(vec);
@@ -154,7 +153,18 @@ class Quantize {
             }
         }
 
-        System.out.println(codebookClusters);
+        // based on assignment, update the codebook vectors
+        for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
+            Pair<Float, Float> centroid = entry
+                    .getValue()
+                    .stream()
+                    .reduce(
+                            ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
+                            )
+                    .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
+                    .orElse(new Pair<>(0.0f, 0.0f));
+            System.out.println(centroid);
+        }
     }
 }
 
