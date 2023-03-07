@@ -16,9 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
-// import static java.lang.System.out;
 
 class ImageDisplay {
     private final BufferedImage image;
@@ -132,14 +132,14 @@ class Quantize {
 
     private ArrayList<Pair<Float, Float>> initCodebookVectors() {
         // initialize the initial codebook vectors as random vectors from the vectors in the image
-        ArrayList<Pair<Float, Float>> codebookVectors = new ArrayList<>(n);
-        Random prng = new Random();
-        for (int i = 0; i < n; i++) {
-            int idx = prng.nextInt(imgVectors.size());
-            Pair<Float, Float> vec = imgVectors.get(idx);
-            codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
-        }
-        return codebookVectors;
+        ArrayList<Pair<Float, Float>> codebookVectors =
+                (ArrayList<Pair<Float, Float>>)
+                        imgVectors
+                                .stream()
+                                .distinct()
+                                .collect(Collectors.toList());
+        Collections.shuffle(codebookVectors);
+        return new ArrayList<>( codebookVectors.subList(0, n));
     }
 
     private HashMap<Integer, ArrayList<Pair<Float, Float>>> createClusters(ArrayList<Pair<Float, Float>> codebookVectors) {
@@ -184,9 +184,11 @@ class Quantize {
         do {
             HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = createClusters(codebookVectors);
             avgDiff = updateCodebookVectors(codebookVectors, codebookClusters);
-            System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n", iter, codebookVectors, avgDiff);
+            System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n\n", iter, codebookVectors, avgDiff);
             iter += 1;
         } while (avgDiff > DIFF_THRESHOLD);
+
+        // round clusters to integers while minimizing the error
     }
 }
 
