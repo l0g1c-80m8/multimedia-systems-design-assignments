@@ -185,7 +185,6 @@ class Quantize {
             HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = createClusters(codebookVectors);
             avgDiff = updateCodebookVectors(codebookVectors, codebookClusters);
             System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n", iter, codebookVectors, avgDiff);
-            System.out.println(avgDiff);
             iter += 1;
         } while (avgDiff > DIFF_THRESHOLD);
     }
