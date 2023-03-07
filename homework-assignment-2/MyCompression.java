@@ -130,7 +130,7 @@ class Quantize {
                 .orElse(-1);
     }
 
-    public void quantize() {
+    private ArrayList<Pair<Float, Float>> initCodebookVectors() {
         // initialize the initial codebook vectors as random vectors from the vectors in the image
         ArrayList<Pair<Float, Float>> codebookVectors = new ArrayList<>(n);
         Random prng = new Random();
@@ -139,36 +139,50 @@ class Quantize {
             Pair<Float, Float> vec = imgVectors.get(idx);
             codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
         }
+        return codebookVectors;
+    }
+
+    private HashMap<Integer, ArrayList<Pair<Float, Float>>> createClusters(ArrayList<Pair<Float, Float>> codebookVectors) {
+        // assign each vector to the nearest codebook vector
+        HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
+        for (Pair<Float, Float> vec : imgVectors) {
+            int idx = getNearestCodeVecIndex(vec, codebookVectors);
+            if (codebookClusters.containsKey(idx)) {
+                codebookClusters.get(idx).add(vec);
+            } else {
+                codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
+            }
+        }
+        return codebookClusters;
+    }
+
+    private double updateCodebookVectors(ArrayList<Pair<Float, Float>> codebookVectors, HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters) {
+        // based on assignment, update the codebook vectors
+        double avgDiff = 0.0f;
+        for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
+            Pair<Float, Float> centroid = entry
+                    .getValue()
+                    .stream()
+                    .reduce(
+                            ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
+                    )
+                    .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
+                    .orElse(new Pair<>(0.0f, 0.0f));
+            avgDiff += distInst.getDist(centroid, codebookVectors.get(entry.getKey()));
+            codebookVectors.set(entry.getKey(), centroid);
+        }
+        avgDiff /= codebookVectors.size();
+        return avgDiff;
+    }
+
+    public void quantize() {
+        // initialize the initial codebook vectors as random vectors from the vectors in the image
+        ArrayList<Pair<Float, Float>> codebookVectors = initCodebookVectors();
 
         double avgDiff;
         do {
-            // assign each vector to the nearest codebook vector
-            HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
-
-            for (Pair<Float, Float> vec : imgVectors) {
-                int idx = getNearestCodeVecIndex(vec, codebookVectors);
-                if (codebookClusters.containsKey(idx)) {
-                    codebookClusters.get(idx).add(vec);
-                } else {
-                    codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
-                }
-            }
-
-            // based on assignment, update the codebook vectors
-            avgDiff = 0.0f;
-            for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
-                Pair<Float, Float> centroid = entry
-                        .getValue()
-                        .stream()
-                        .reduce(
-                                ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
-                        )
-                        .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
-                        .orElse(new Pair<>(0.0f, 0.0f));
-                avgDiff += distInst.getDist(centroid, codebookVectors.get(entry.getKey()));
-                codebookVectors.set(entry.getKey(), centroid);
-            }
-            avgDiff /= codebookVectors.size();
+            HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = createClusters(codebookVectors);
+            avgDiff = updateCodebookVectors(codebookVectors, codebookClusters);
             System.out.println(codebookVectors);
             System.out.println(avgDiff);
         } while (avgDiff > DIFF_THRESHOLD);
