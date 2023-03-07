@@ -101,6 +101,7 @@ class SingleChannelImageParser {
 class Quantize {
     private final ArrayList<Pair<Float, Float>> imgVectors;
     private final int n;
+    private static final float DIFF_THRESHOLD = 0.1f;
 
     interface EuclideanDist {
         double getDist(Pair<Float, Float> vec1, Pair<Float, Float> vec2);
@@ -139,31 +140,38 @@ class Quantize {
             codebookVectors.add(new Pair<>(vec.getKey(), vec.getValue()));
         }
 
-        // assign each vector to the nearest codebook vector
-        HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
+        double avgDiff;
+        do {
+            // assign each vector to the nearest codebook vector
+            HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
 
-        for (Pair<Float, Float> vec : imgVectors) {
-            int idx = getNearestCodeVecIndex(vec, codebookVectors);
-            if (codebookClusters.containsKey(idx)) {
-                codebookClusters.get(idx).add(vec);
-            } else {
-                codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
+            for (Pair<Float, Float> vec : imgVectors) {
+                int idx = getNearestCodeVecIndex(vec, codebookVectors);
+                if (codebookClusters.containsKey(idx)) {
+                    codebookClusters.get(idx).add(vec);
+                } else {
+                    codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
+                }
             }
-        }
 
-        // based on assignment, update the codebook vectors
-        for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
-            Pair<Float, Float> centroid = entry
-                    .getValue()
-                    .stream()
-                    .reduce(
-                            ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
-                            )
-                    .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
-                    .orElse(new Pair<>(0.0f, 0.0f));
-            codebookVectors.set(entry.getKey(), centroid);
-        }
-        System.out.println(codebookVectors);
+            // based on assignment, update the codebook vectors
+            avgDiff = 0.0f;
+            for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
+                Pair<Float, Float> centroid = entry
+                        .getValue()
+                        .stream()
+                        .reduce(
+                                ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
+                        )
+                        .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
+                        .orElse(new Pair<>(0.0f, 0.0f));
+                avgDiff += distInst.getDist(centroid, codebookVectors.get(entry.getKey()));
+                codebookVectors.set(entry.getKey(), centroid);
+            }
+            avgDiff /= codebookVectors.size();
+            System.out.println(codebookVectors);
+            System.out.println(avgDiff);
+        } while (avgDiff > DIFF_THRESHOLD);
     }
 }
 
