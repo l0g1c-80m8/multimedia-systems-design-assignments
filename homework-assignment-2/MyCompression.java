@@ -21,10 +21,12 @@ import java.util.stream.Collectors;
 import static java.lang.System.exit;
 
 class ImageDisplay {
-    private final BufferedImage image;
+    private final BufferedImage orig;
+    private final BufferedImage quantized;
 
-    ImageDisplay(BufferedImage image) {
-        this.image = image;
+    ImageDisplay(BufferedImage orig, BufferedImage quantized) {
+        this.orig = orig;
+        this.quantized = quantized;
     }
     public void showImg() {
 
@@ -34,23 +36,38 @@ class ImageDisplay {
         frame.getContentPane().setLayout(gLayout);
 
         JLabel lbText1 = new JLabel("Original image (Left)");
+        JLabel lbText2 = new JLabel("Quantized image (Right)");
         lbText1.setHorizontalAlignment(SwingConstants.CENTER);
+        lbText2.setHorizontalAlignment(SwingConstants.CENTER);
 
-        JLabel lbIm1 = new JLabel(new ImageIcon(image));
+        JLabel lbIm1 = new JLabel(new ImageIcon(orig));
+        JLabel lbIm2 = new JLabel(new ImageIcon(quantized));
 
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.anchor = GridBagConstraints.CENTER;
-        c.weightx =1.0;
+        c.weightx = 0.5;
         c.gridx = 0;
         c.gridy = 0;
         c.insets = new Insets(20, 40, 20, 40);
         frame.getContentPane().add(lbText1, c);
 
         c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.CENTER;
+        c.weightx = 0.5;
+        c.gridx = 1;
+        c.gridy = 0;
+        frame.getContentPane().add(lbText2, c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 1;
         frame.getContentPane().add(lbIm1, c);
+
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 1;
+        c.gridy = 1;
+        frame.getContentPane().add(lbIm2, c);
 
         frame.pack();
         frame.setVisible(true);
@@ -102,6 +119,8 @@ class Quantize {
     private final ArrayList<Pair<Float, Float>> imgVectors;
     private final int n;
     private static final float DIFF_THRESHOLD = 0.1f;
+    private final int resHeight;
+    private final int resWidth;
 
     interface EuclideanDist {
         double getDist(Pair<Float, Float> vec1, Pair<Float, Float> vec2);
@@ -112,9 +131,11 @@ class Quantize {
                     + Math.pow($1.getValue() - $2.getValue(), 2)
             , 0.5);
 
-    Quantize(ArrayList<Pair<Float, Float>> imgVectors, int n) {
+    Quantize(ArrayList<Pair<Float, Float>> imgVectors, int n, int resHeight, int resWidth) {
         this.imgVectors = imgVectors;
         this.n = n;
+        this.resHeight = resHeight;
+        this.resWidth = resWidth;
     }
 
     private int getNearestCodeVecIndex(Pair<Float, Float> vec, ArrayList<Pair<Float, Float>> codebookVectors) {
@@ -175,7 +196,37 @@ class Quantize {
         return avgDiff;
     }
 
-    public void quantize() {
+    private ArrayList<Pair<Integer, Integer>> quantizedVectors(ArrayList<Pair<Float, Float>> codebookVectors) {
+        return (ArrayList<Pair<Integer, Integer>>) imgVectors
+                .stream()
+                .map($ -> {
+                    double minDist = Double.MAX_VALUE;
+                    int minIdx = -1;
+                    for (int i = 0; i < codebookVectors.size(); i++) {
+                        if (distInst.getDist(codebookVectors.get(i), $) < minDist) {
+                            minDist = distInst.getDist(codebookVectors.get(i), $);
+                            minIdx = i;
+                        }
+                    }
+                    return new Pair<>(codebookVectors.get(minIdx).getKey().intValue(), codebookVectors.get(minIdx).getValue().intValue());
+                }).collect(Collectors.toList());
+    }
+
+    private BufferedImage vectorToImg(ArrayList<Pair<Integer, Integer>> vectors) {
+        ArrayList<Integer> pixels = new ArrayList<>();
+        for (Pair<Integer, Integer> vector: vectors) {
+            pixels.add(vector.getKey());
+            pixels.add(vector.getValue());
+        }
+        BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
+        for (int i = 0; i < pixels.size(); i++) {
+            int intensity = 0xff000000 | ((pixels.get(i) & 0xff)) | ((pixels.get(i) & 0xff) << 8) | (pixels.get(i) & 0xff);
+            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), intensity);
+        }
+        return image;
+    }
+
+    public BufferedImage getQuantize() {
         // initialize the initial codebook vectors as random vectors from the vectors in the image
         ArrayList<Pair<Float, Float>> codebookVectors = initCodebookVectors();
 
@@ -187,8 +238,7 @@ class Quantize {
             System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n\n", iter, codebookVectors, avgDiff);
             iter += 1;
         } while (avgDiff > DIFF_THRESHOLD);
-
-        // round clusters to integers while minimizing the error
+        return vectorToImg(quantizedVectors(codebookVectors));
     }
 }
 
@@ -218,10 +268,8 @@ public class MyCompression {
 
         SingleChannelImageParser scip = new SingleChannelImageParser(srcImgPath, RES_HEIGHT, RES_WIDTH);
         scip.parseImage();
-        BufferedImage parsedImg = scip.getParsedImageAsGray();
-        ImageDisplay id = new ImageDisplay(parsedImg);
+        Quantize q = new Quantize(scip.getParsedImageInR2(), n, RES_HEIGHT, RES_WIDTH);
+        ImageDisplay id = new ImageDisplay(scip.getParsedImageAsGray(), q.getQuantize());
         id.showImg();
-        Quantize q = new Quantize(scip.getParsedImageInR2(), n);
-        q.quantize();
     }
 }
