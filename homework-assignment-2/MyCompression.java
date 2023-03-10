@@ -232,7 +232,7 @@ class Quantize {
                             minIdx = i;
                         }
                     }
-                    return (Vector<Integer>) codebookVectors.get(minIdx).clone();
+                    return new Vector<>(codebookVectors.get(minIdx));
                 })
                 .collect(Collectors.toList());
 
