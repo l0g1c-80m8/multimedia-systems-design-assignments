@@ -83,10 +83,10 @@ class SingleChannelImageParser {
         this.imagePath = imagePath;
         this.resHeight = resHeight;
         this.resWidth = resWidth;
-        parseImage();
     }
 
     public ArrayList<ArrayList<Integer>> parseImage() {
+        System.out.println("Begin Image Parsing \n");
         Path path = Paths.get(imagePath);
         try {
             byte[] pixels =  Files.readAllBytes(path);
@@ -98,6 +98,7 @@ class SingleChannelImageParser {
                 }
                 image.add(imageRow);
             }
+            System.out.println("Image Parsing Complete\n");
             return image;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -291,6 +292,7 @@ class Quantize {
     }
 
     ArrayList<ArrayList<Integer>> getQuantized() {
+        System.out.println("Begin Quantization\n");
         ArrayList<Vector<Integer>> vectorizedImg = getVectorizedImage();
         ArrayList<Vector<Integer>> codebookVectors = initCodeBookVectors(vectorizedImg);
 
@@ -302,6 +304,7 @@ class Quantize {
             System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n\n", iter, codebookVectors, avgDiff);
             iter += 1;
         } while (avgDiff > DIFF_THRESHOLD);
+        System.out.println("Quantization Complete\n");
 
         return getQuantizedImage(vectorizedImg, codebookVectors);
     }
@@ -340,6 +343,7 @@ public class MyCompression {
             exit(1);
         }
 
+        System.out.println("Begin Process\n");
         ArrayList<ArrayList<Integer>> orig = new SingleChannelImageParser(
                 args[0],
                 RES_HEIGHT,
@@ -356,5 +360,6 @@ public class MyCompression {
                 getImageFromBitmap(orig),
                 getImageFromBitmap(quantized)
         ).showImg();
+        System.out.println("End Process\n");
     }
 }
