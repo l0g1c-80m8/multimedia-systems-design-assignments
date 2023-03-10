@@ -18,7 +18,7 @@ n       - The number of codebook vectors to be used. n codewords require log(n) 
 
 ### Implementation Details ###
 
-- Step 1: Vector space is implemented as a euclidean space in Rm.
+- Step 1: Vector space is implemented as a euclidean space in $R^{m}$.
 - Step 2: After the image is converted into a vector representation, all distinct vectors are collected and shuffled. The first n vectors are chosen as initial codebook vectors. 
 - Step 3: Nearest cluster is assigned and the new centroid is calculated. 
 - Step 4: Based on the new centroids, the codebook vectors and updated. 
