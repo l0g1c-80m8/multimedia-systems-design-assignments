@@ -4,8 +4,6 @@
  */
 
 // swing imports
-import javafx.util.Pair;
-
 import java.awt.*;
 import java.awt.image.*;
 import javax.swing.*;
@@ -17,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.System.exit;
 
@@ -79,125 +78,150 @@ class SingleChannelImageParser {
     private final String imagePath;
     private final int resHeight;
     private final int resWidth;
-    private byte[] pixels;
 
     SingleChannelImageParser(String imagePath, int resHeight, int resWidth) {
         this.imagePath = imagePath;
         this.resHeight = resHeight;
         this.resWidth = resWidth;
-        parseImage();
     }
 
-    void parseImage() {
+    public ArrayList<ArrayList<Integer>> parseImage() {
+        System.out.println("Begin Image Parsing \n");
         Path path = Paths.get(imagePath);
         try {
-            pixels =  Files.readAllBytes(path);
+            byte[] pixels =  Files.readAllBytes(path);
+            ArrayList<ArrayList<Integer>> image = new ArrayList<>();
+            for (int i = 0; i < resHeight; i++) {
+                ArrayList<Integer> imageRow = new ArrayList<>();
+                for (int j = 0; j < resWidth; j++) {
+                    imageRow.add(0x000000ff & pixels[i * resWidth + j]);
+                }
+                image.add(imageRow);
+            }
+            System.out.println("Image Parsing Complete\n");
+            return image;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-    BufferedImage getParsedImageAsGray() {
-        BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
-        for (int i = 0; i < pixels.length; i++) {
-            int intensity = 0xff000000 | ((pixels[i] & 0xff)) | ((pixels[i] & 0xff) << 8) | (pixels[i] & 0xff);
-            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), intensity);
-        }
-        return image;
-    }
-
-    ArrayList<Pair<Float, Float>> getParsedImageInR2() {
-        ArrayList<Pair<Float, Float>> imgVectors = new ArrayList<>();
-        for (int i = 0; i < pixels.length; i += 2) {
-            imgVectors.add(new Pair<>((float) (0x000000ff & pixels[i]), (float) (0x000000ff & pixels[i + 1])));
-        }
-        return imgVectors;
-    }
 }
 
 class Quantize {
-    private final ArrayList<Pair<Float, Float>> imgVectors;
+    private final ArrayList<ArrayList<Integer>> image;
     private final int n;
+    private final int m;
     private static final float DIFF_THRESHOLD = 0.1f;
     private final int resHeight;
     private final int resWidth;
 
     interface EuclideanDist {
-        double getDist(Pair<Float, Float> vec1, Pair<Float, Float> vec2);
+        double getDist(Vector<Integer> vec1, Vector<Integer> vec2);
     }
 
     private static final EuclideanDist distInst = ($1, $2) -> Math.pow(
-            Math.pow($1.getKey() - $2.getKey(), 2)
-                    + Math.pow($1.getValue() - $2.getValue(), 2)
+            IntStream.range(0, $1.size())
+                    .reduce(
+                            0,
+                            (acc, idx) ->
+                                    (int) (acc + Math.pow($1.get(idx) - $2.get(idx), 2))
+                    )
             , 0.5);
 
-    Quantize(ArrayList<Pair<Float, Float>> imgVectors, int n, int resHeight, int resWidth) {
-        this.imgVectors = imgVectors;
+    Quantize(ArrayList<ArrayList<Integer>> image, int n, int m, int resHeight, int resWidth) {
+        this.image = image;
         this.n = n;
+        this.m = m;
         this.resHeight = resHeight;
         this.resWidth = resWidth;
     }
 
-    private int getNearestCodeVecIndex(Pair<Float, Float> vec, ArrayList<Pair<Float, Float>> codebookVectors) {
+    private ArrayList<Vector<Integer>> getVectorizedImage() {
+        ArrayList<Vector<Integer>> vectorizedImg = new ArrayList<>();
+        if (this.m == 2) {
+            for (int i = 0; i < resHeight; i++) {
+                for (int j = 0; j < resWidth; j += this.m) {
+                    vectorizedImg.add(
+                            new Vector<>(Arrays.asList(
+                                    this.image.get(i).get(j),
+                                    this.image.get(i).get(j + 1)
+                            ))
+                    );
+                }
+            }
+        } else {
+            int side = (int) Math.pow(this.m, 0.5);
+            for (int i = 0; i < resHeight; i += side) {
+                for (int j = 0; j < resWidth; j += side) {
+                    Vector<Integer> vector = new Vector<>(this.m);
+                    for (int deltaI = 0; deltaI < side; deltaI++) {
+                        for (int deltaJ = 0; deltaJ < side; deltaJ++) {
+                            vector.add(this.image.get(i + deltaI).get(j + deltaJ));
+                        }
+                    }
+                    vectorizedImg.add(vector);
+                }
+            }
+        }
+        return vectorizedImg;
+    }
+
+    private ArrayList<Vector<Integer>> initCodeBookVectors(ArrayList<Vector<Integer>> vectorizedImg) {
+        ArrayList<Vector<Integer>> codebookVectors = (ArrayList<Vector<Integer>>) vectorizedImg
+                .stream()
+                .distinct()
+                .collect(Collectors.toList());
+        Collections.shuffle(codebookVectors);
+        return new ArrayList<>( codebookVectors.subList(0, this.n));
+    }
+
+    private int getNearestCodeVecIndex(
+            Vector<Integer> vector,
+            ArrayList<Vector<Integer>> codebookVectors
+    ) {
         return codebookVectors
                 .stream()
                 .parallel()
                 .reduce(
                         ($1, $2) ->
-                                distInst.getDist(vec, $1) < distInst.getDist(vec, $2)
+                                distInst.getDist(vector, $1) < distInst.getDist(vector, $2)
                                         ? $1 : $2
                 )
                 .map(codebookVectors::indexOf)
                 .orElse(-1);
     }
 
-    private ArrayList<Pair<Float, Float>> initCodebookVectors() {
-        // initialize the initial codebook vectors as random vectors from the vectors in the image
-        ArrayList<Pair<Float, Float>> codebookVectors =
-                (ArrayList<Pair<Float, Float>>)
-                        imgVectors
-                                .stream()
-                                .distinct()
-                                .collect(Collectors.toList());
-        Collections.shuffle(codebookVectors);
-        return new ArrayList<>( codebookVectors.subList(0, n));
-    }
-
-    private HashMap<Integer, ArrayList<Pair<Float, Float>>> createClusters(ArrayList<Pair<Float, Float>> codebookVectors) {
-        // assign each vector to the nearest codebook vector
-        HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = new HashMap<>(codebookVectors.size());
-        for (Pair<Float, Float> vec : imgVectors) {
-            int idx = getNearestCodeVecIndex(vec, codebookVectors);
+    private HashMap<Integer, ArrayList<Vector<Integer>>> updateClusters(
+            ArrayList<Vector<Integer>> codebookVectors,
+            ArrayList<Vector<Integer>> vectorizedImg
+    ) {
+        HashMap<Integer, ArrayList<Vector<Integer>>> codebookClusters = new HashMap<>(codebookVectors.size());
+        for (Vector<Integer> vector : vectorizedImg) {
+            int idx = getNearestCodeVecIndex(vector, codebookVectors);
             if (codebookClusters.containsKey(idx)) {
-                codebookClusters.get(idx).add(vec);
+                codebookClusters.get(idx).add(vector);
             } else {
-                codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vec)));
+                codebookClusters.put(idx, new ArrayList<>(Collections.singletonList(vector)));
             }
         }
         return codebookClusters;
     }
 
-    private double updateCodebookVectors(ArrayList<Pair<Float, Float>> codebookVectors, HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters) {
-        // based on assignment, update the codebook vectors
-        double avgDiff = 0.0f;
-        for (HashMap.Entry<Integer, ArrayList<Pair<Float, Float>>> entry : codebookClusters.entrySet()) {
-            Pair<Float, Float> centroid = entry
-                    .getValue()
-                    .stream()
-                    .reduce(
-                            ($1, $2) -> new Pair<>($1.getKey() + $2.getKey(), $1.getValue() + $2.getValue())
-                    )
-                    .map(centroidOpt -> new Pair<>(centroidOpt.getKey() / entry.getValue().size(), centroidOpt.getValue() / entry.getValue().size()))
-                    .orElse(new Pair<>(0.0f, 0.0f));
-            avgDiff += distInst.getDist(centroid, codebookVectors.get(entry.getKey()));
-            codebookVectors.set(entry.getKey(), centroid);
-        }
-        avgDiff /= codebookVectors.size();
-        return avgDiff;
-    }
+    private ArrayList<ArrayList<Integer>> getQuantizedImage(
+            ArrayList<Vector<Integer>> vectorizedImage,
+            ArrayList<Vector<Integer>> codebookVectors
+    ) {
+        ArrayList<ArrayList<Integer>> quantizedImage = IntStream
+                .range(0, resHeight)
+                .boxed()
+                .map(rowIdx -> new ArrayList<>(
+                        IntStream
+                                .range(0, resWidth)
+                                .boxed()
+                                .map(colIdx -> 0)
+                                .collect(Collectors.toList())
+                )).collect(Collectors.toCollection(ArrayList::new));
 
-    private ArrayList<Pair<Integer, Integer>> quantizedVectors(ArrayList<Pair<Float, Float>> codebookVectors) {
-        return (ArrayList<Pair<Integer, Integer>>) imgVectors
+        ArrayList<Vector<Integer>> quantizedVectors = (ArrayList<Vector<Integer>>) vectorizedImage
                 .stream()
                 .map($ -> {
                     double minDist = Double.MAX_VALUE;
@@ -208,37 +232,81 @@ class Quantize {
                             minIdx = i;
                         }
                     }
-                    return new Pair<>(codebookVectors.get(minIdx).getKey().intValue(), codebookVectors.get(minIdx).getValue().intValue());
-                }).collect(Collectors.toList());
+                    return (Vector<Integer>) codebookVectors.get(minIdx).clone();
+                })
+                .collect(Collectors.toList());
+
+        int side = (int) Math.sqrt(this.m);
+        if (this.m == 2) {
+            for (int i = 0; i < quantizedVectors.size(); i++) {
+                quantizedImage.get((this.m * i) / resWidth).set((this.m * i) % resWidth, quantizedVectors.get(i).get(0));
+                quantizedImage.get((this.m * i) / resWidth).set((this.m * i) % resWidth + 1, quantizedVectors.get(i).get(1));
+            }
+        } else {
+            for (int i = 0; i < quantizedVectors.size(); i++) {
+                for (int deltaX = 0; deltaX < side; deltaX++) {
+                    for (int deltaY = 0; deltaY < side; deltaY++) {
+                        quantizedImage
+                                .get(side * ((side * i) / resWidth) + deltaX)
+                                .set(
+                                        (side * i) % resWidth + deltaY,
+                                        quantizedVectors.get(i).get(side * deltaX + deltaY)
+                                );
+                    }
+                }
+            }
+        }
+        return quantizedImage;
     }
 
-    private BufferedImage vectorToImg(ArrayList<Pair<Integer, Integer>> vectors) {
-        ArrayList<Integer> pixels = new ArrayList<>();
-        for (Pair<Integer, Integer> vector: vectors) {
-            pixels.add(vector.getKey());
-            pixels.add(vector.getValue());
+    private double updateCodebookVectors(
+            ArrayList<Vector<Integer>> codebookVectors, HashMap<Integer,
+            ArrayList<Vector<Integer>>> codebookClusters
+    ) {
+        double diff = 0.0f;
+        for (HashMap.Entry<Integer, ArrayList<Vector<Integer>>> entry : codebookClusters.entrySet()) {
+            Vector<Integer> centroid = entry
+                    .getValue()
+                    .stream()
+                    .reduce(($1, $2) -> new Vector<>(IntStream
+                            .range(0, $1.size())
+                            .boxed()
+                            .map(idx -> $1.get(idx) + $2.get(idx))
+                            .collect(Collectors.toCollection(Vector::new))
+                    ))
+                    .map(vector -> vector
+                            .stream()
+                            .map(component -> Math.round((float) component / entry.getValue().size()))
+                            .collect(Collectors.toCollection(Vector::new))
+                    )
+                    .orElse(IntStream
+                            .range(0, entry.getValue().size())
+                            .boxed()
+                            .map(idx -> 0)
+                            .collect(Collectors.toCollection(Vector::new))
+                    );
+            diff += distInst.getDist(centroid, codebookVectors.get(entry.getKey()));
+            codebookVectors.set(entry.getKey(), centroid);
         }
-        BufferedImage image = new BufferedImage(resWidth, resHeight, BufferedImage.TYPE_BYTE_GRAY);
-        for (int i = 0; i < pixels.size(); i++) {
-            int intensity = 0xff000000 | ((pixels.get(i) & 0xff)) | ((pixels.get(i) & 0xff) << 8) | (pixels.get(i) & 0xff);
-            image.setRGB(i % resWidth, (int) Math.floor((float)(i / resWidth)), intensity);
-        }
-        return image;
+        return diff / codebookVectors.size();
     }
 
-    public BufferedImage getQuantize() {
-        // initialize the initial codebook vectors as random vectors from the vectors in the image
-        ArrayList<Pair<Float, Float>> codebookVectors = initCodebookVectors();
+    ArrayList<ArrayList<Integer>> getQuantized() {
+        System.out.println("Begin Quantization\n");
+        ArrayList<Vector<Integer>> vectorizedImg = getVectorizedImage();
+        ArrayList<Vector<Integer>> codebookVectors = initCodeBookVectors(vectorizedImg);
 
         double avgDiff;
         int iter = 1;
         do {
-            HashMap<Integer, ArrayList<Pair<Float, Float>>> codebookClusters = createClusters(codebookVectors);
+            HashMap<Integer, ArrayList<Vector<Integer>>> codebookClusters = updateClusters(codebookVectors, vectorizedImg);
             avgDiff = updateCodebookVectors(codebookVectors, codebookClusters);
             System.out.printf("Iteration %o:\nCodebook: %s\nAverage Difference: %f%n\n", iter, codebookVectors, avgDiff);
             iter += 1;
         } while (avgDiff > DIFF_THRESHOLD);
-        return vectorToImg(quantizedVectors(codebookVectors));
+        System.out.println("Quantization Complete\n");
+
+        return getQuantizedImage(vectorizedImg, codebookVectors);
     }
 }
 
@@ -252,24 +320,46 @@ class Quantize {
  */
 public class MyCompression {
 
+    private static BufferedImage getImageFromBitmap(ArrayList<ArrayList<Integer>> bitmap) {
+        BufferedImage image = new BufferedImage(bitmap.get(0).size(), bitmap.size(), BufferedImage.TYPE_BYTE_GRAY);
+        for (int i = 0; i < bitmap.size(); i++) {
+            for (int j = 0; j < bitmap.get(i).size(); j ++) {
+                int intensity = 0xff000000
+                        | ((bitmap.get(i).get(j) & 0xff))
+                        | ((bitmap.get(i).get(j) & 0xff) << 8)
+                        | (bitmap.get(i).get(j) & 0xff);
+                image.setRGB(j, i, intensity);
+            }
+        }
+        return image;
+    }
+
     private static final int RES_HEIGHT = 288;
     private static final int RES_WIDTH = 352;
 
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("ERR: Expected three arguments (image, m, n)");
-            // Terminate the program unsuccessfully
+            System.out.println("ERR: Expected three arguments (image path, m, n)");
             exit(1);
         }
 
-        String srcImgPath = args[0];
-        int m = Integer.parseInt(args[1]);
-        int n = Integer.parseInt(args[2]);
-
-        SingleChannelImageParser scip = new SingleChannelImageParser(srcImgPath, RES_HEIGHT, RES_WIDTH);
-        scip.parseImage();
-        Quantize q = new Quantize(scip.getParsedImageInR2(), n, RES_HEIGHT, RES_WIDTH);
-        ImageDisplay id = new ImageDisplay(scip.getParsedImageAsGray(), q.getQuantize());
-        id.showImg();
+        System.out.println("Begin Process\n");
+        ArrayList<ArrayList<Integer>> orig = new SingleChannelImageParser(
+                args[0],
+                RES_HEIGHT,
+                RES_WIDTH
+        ).parseImage();
+        ArrayList<ArrayList<Integer>> quantized = new Quantize(
+                orig,
+                Integer.parseInt(args[2]),
+                Integer.parseInt(args[1]),
+                RES_HEIGHT,
+                RES_WIDTH
+        ).getQuantized();
+        new ImageDisplay(
+                getImageFromBitmap(orig),
+                getImageFromBitmap(quantized)
+        ).showImg();
+        System.out.println("End Process\n");
     }
 }
