@@ -6,6 +6,24 @@ Aliasing in [1. Spatial](#part-1-spatial-resampling-and-aliasing) and [2. Tempor
 
 Refer to the [homework specs.](Assignment%201%20-%20Description.pdf) for exact details of the assignment.
 
+<!-- TOC -->
+  * [Homework 1: Aliasing and Resampling](#homework-1--aliasing-and-resampling)
+    * [Part 1. Spatial Resampling and Aliasing](#part-1-spatial-resampling-and-aliasing)
+      * [The results for the experiments described in the homework specs. can be found here:](#the-results-for-the-experiments-described-in-the-homework-specs-can-be-found-here-)
+      * [Demo run for parameters (n=64 [lines], s=0.5 [scale factor], a=0 [no anti-aliasing])](#demo-run-for-parameters--n64-lines--s05-scale-factor--a0-no-anti-aliasing-)
+      * [Demo run for parameters (n=64 [lines], s=0.5 [scale factor], a=1 [anti-aliasing])](#demo-run-for-parameters--n64-lines--s05-scale-factor--a1-anti-aliasing-)
+    * [Part 2. Temporal Aliasing](#part-2-temporal-aliasing)
+      * [The results for the experiments described in the homework specs. can be found here:](#the-results-for-the-experiments-described-in-the-homework-specs-can-be-found-here--1)
+      * [Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=25.0 [sampling rate])](#demo-run-for-parameters--n64-lines--s100-speed-of-rotation--fps250-sampling-rate-)
+      * [Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=16.0 [sampling rate])](#demo-run-for-parameters--n64-lines--s100-speed-of-rotation--fps160-sampling-rate-)
+      * [Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=10.0 [sampling rate])](#demo-run-for-parameters--n64-lines--s100-speed-of-rotation--fps100-sampling-rate-)
+      * [Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=8.0 [sampling rate])](#demo-run-for-parameters--n64-lines--s100-speed-of-rotation--fps80-sampling-rate-)
+      * [Demo run for parameters (n=64 [lines], s=10.0 [speed of rotation], fps=6.0 [sampling rate])](#demo-run-for-parameters--n64-lines--s100-speed-of-rotation--fps60-sampling-rate-)
+    * [Part 3. Temporal Anti-Aliasing with Spatial Anti-Aliasing](#part-3-temporal-anti-aliasing-with-spatial-anti-aliasing)
+      * [Demo run for parameters (n=64 , s=4.0, fps=7.0, a=1, s=1.0)](#demo-run-for-parameters--n64--s40-fps70-a1-s10-)
+      * [Demo run for parameters (n=64 , s=4.0, fps=7.0, a=1, s=2.0)](#demo-run-for-parameters--n64--s40-fps70-a1-s20-)
+<!-- TOC -->
+
 ### Part 1. Spatial Resampling and Aliasing
 
 Here two images are generated and displayed side by side. The first image is the original

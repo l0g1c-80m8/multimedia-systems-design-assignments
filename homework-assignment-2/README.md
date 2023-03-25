@@ -5,6 +5,20 @@ process of vector quantization.
 
 Refer to the [homework specs.](Assignment%202%20-%20Description.pdf) for exact details of the assignment.
 
+<!-- TOC -->
+  * [Homework 2: Vector Quantization](#homework-2--vector-quantization)
+    * [Build and Run](#build-and-run)
+      * [The program uses the following parameters:](#the-program-uses-the-following-parameters-)
+    * [Implementation Details](#implementation-details)
+      * [The Experimental Analysis can be found in this document.](#the-experimental-analysis-can-be-found-in-this-document)
+      * [The Archive containing the outputs of the experimentation can be accessed through here.](#the-archive-containing-the-outputs-of-the-experimentation-can-be-accessed-through-here-)
+      * [Log for a sample execution can be found here.](#log-for-a-sample-execution-can-be-found-here-)
+    * [Sample Outputs](#sample-outputs)
+      * [Demo run for parameters (image=1 [image file], m=2 [size of the vector], n=16 [codebook size])](#demo-run-for-parameters--image1-image-file--m2-size-of-the-vector--n16-codebook-size-)
+      * [Demo run for parameters (image=1 [image file], m=4 [size of the vector], n=16 [codebook size])](#demo-run-for-parameters--image1-image-file--m4-size-of-the-vector--n16-codebook-size-)
+      * [Demo run for parameters (image=1 [image file], m=16 [size of the vector], n=16 [codebook size])](#demo-run-for-parameters--image1-image-file--m16-size-of-the-vector--n16-codebook-size-)
+<!-- TOC -->
+
 ### Build and Run ###
 - Compile the program using the command ```javac MyCompression.java```.
 - Run the compiled binary using the command ```java MyCompression <image> <m> <n>```
