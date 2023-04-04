@@ -1,12 +1,12 @@
 <!-- TOC -->
-  * [Assignments for CSCI 576 : Multimedia Systems Design](#assignments-for-csci-576--multimedia-systems-design)
-      * [Instructor: Professor Parag Havaldar (Spring 2023)](#instructor--professor-parag-havaldar--spring-2023-)
-      * [Reference: Multimedia Systems: Algorithms, Standards, and Industry Practices (Advanced Topics)](#reference--multimedia-systems--algorithms-standards-and-industry-practices--advanced-topics-)
-    * [Summary](#summary)
+  * [Assignments for CSCI 576 : Multimedia Systems Design](#assignments-for-csci-576--multimedia-systems-design-)
+      * [Instructor: Professor Parag Havaldar (Spring 2023)](#instructor-professor-parag-havaldar-spring-2023)
+      * [Reference: Multimedia Systems: Algorithms, Standards, and Industry Practices (Advanced Topics)](#reference-multimedia-systems--algorithms-standards-and-industry-practices--advanced-topics-)
+    * [Summary](#summary-)
 <!-- TOC -->
 
 ## Assignments for CSCI 576 : Multimedia Systems Design ##
-Repo to contain the assignments for [CSCI 576](https://classes.usc.edu/term-20231/course/csci-576/): Multimeida Systems Design Course
+Repo to contain the assignments for [CSCI 576](https://classes.usc.edu/term-20231/course/csci-576/): Multimedia Systems Design Course
 
 #### Instructor: Professor [Parag Havaldar](https://viterbi.usc.edu/directory/faculty/Havaldar/Parag) (Spring 2023)
 
